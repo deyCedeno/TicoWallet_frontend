@@ -1,4 +1,4 @@
 package com.moviles.ticowallet.models
 
-class Objetive {
+class Goal {
 }
