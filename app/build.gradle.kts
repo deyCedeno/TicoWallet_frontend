@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt") // Para Room
-    id("com.google.gms.google-services") // Añade esto
+    //id("com.google.gms.google-services") // Añade esto
 }
 
 android {
@@ -78,9 +78,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 // Firebase
-    implementation(libs.firebase.bom)
-    implementation(libs.firebase.messaging)
-    implementation(libs.firebase.analytics)
+    //implementation(libs.firebase.bom)
+    //implementation(libs.firebase.messaging)
+   // implementation(libs.firebase.analytics)
 
 // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
