@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt") // Para Room
+    id("com.google.gms.google-services") // Añade esto
 }
 
 android {
@@ -41,6 +43,7 @@ android {
 
 dependencies {
 
+    // AndroidX core y componentes base
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -49,6 +52,21 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+
+    // Retrofit y networking
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+// Otras dependencias
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.coil.compose)
+
+// Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -56,4 +74,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+// Firebase
+    implementation(libs.firebase.bom)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
+
+// Room Database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+// Paging
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 }
