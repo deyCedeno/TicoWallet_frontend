@@ -65,6 +65,8 @@ dependencies {
 // Otras dependencias
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
 
 // Testing
     testImplementation(libs.junit)
