@@ -22,8 +22,8 @@ import androidx.navigation.compose.*
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
-import com.moviles.ticowallet.ui.navigation.MenuItem
 import com.moviles.ticowallet.ui.goals.GoalsScreen
+import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +97,7 @@ fun MainAppScaffold(
                 if (currentRoute == "objetivos") {
                     FloatingActionButton(
                         onClick = {
+                            navController.navigate("crear_objetivo_screen")
                         },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -110,7 +111,7 @@ fun MainAppScaffold(
                 navController = navController,
                 mainViewModel = mainViewModel,
                 paddingValues = innerPadding,
-                startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio" // Ruta inicial
+                startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
             )
         }
     }
@@ -138,9 +139,13 @@ fun AppNavHost(
 
         composable("objetivos") {
             GoalsScreen(
-                paddingValues = paddingValues,
-                onNavigateToCreateGoal = {
-                }
+                paddingValues = paddingValues
+            )
+        }
+        composable("crear_objetivo_screen") {
+            CreateGoalScreen(
+                navController = navController,
+                paddingValues = paddingValues
             )
         }
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }

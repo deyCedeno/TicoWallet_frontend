@@ -1,21 +1,16 @@
 package com.moviles.ticowallet.ui.goals
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalsScreen(
-    paddingValues: PaddingValues,
-    onNavigateToCreateGoal: () -> Unit 
+    paddingValues: PaddingValues
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Activo", "Pausado", "Conseguido")
