@@ -64,6 +64,7 @@ dependencies {
     // Navegación (Fragmentos y UI KTX - asegúrate de necesitar ambas si usas Fragments y Navigation con Compose)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.compose)
 
     // Networking
     implementation(libs.retrofit)
@@ -97,6 +98,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
 }

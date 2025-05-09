@@ -1,9 +1,12 @@
-package com.moviles.ticowallet.ui.main // <-- Cambiado
+package com.moviles.ticowallet.ui.main
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -11,36 +14,58 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.*
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
-// Importar ViewModel desde su nueva ubicación
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
+import com.moviles.ticowallet.ui.navigation.MenuItem
+import com.moviles.ticowallet.ui.goals.GoalsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppScaffold( // <-- Renombrada
-    mainViewModel: MainViewModel = viewModel(), // <-- Usa MainViewModel
+fun MainAppScaffold(
+    mainViewModel: MainViewModel = viewModel(),
     onNotificationsClick: () -> Unit,
 ) {
-    // Observar el estado del MainViewModel
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { backStackEntry ->
+            val route = backStackEntry.destination.route
+            if (route != null && route != uiState.selectedItemRoute) {
+                val selectedMenuItem = uiState.menuItems.find { it.route == route }
+                if (selectedMenuItem != null) {
+                    mainViewModel.onMenuItemSelect(selectedMenuItem)
+                }
+            }
+        }
+    }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // Llama a AppDrawerContent (que ahora está en este mismo paquete)
             AppDrawerContent(
                 userName = uiState.userName,
                 menuItems = uiState.menuItems,
                 selectedItemRoute = uiState.selectedItemRoute,
                 onMenuItemClick = { menuItem ->
-                    mainViewModel.onMenuItemSelect(menuItem) // Llama al MainViewModel
                     scope.launch { drawerState.close() }
+                    navController.navigate(menuItem.route) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    mainViewModel.onMenuItemSelect(menuItem)
                 }
             )
         }
@@ -66,41 +91,85 @@ fun MainAppScaffold( // <-- Renombrada
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
+            },
+            floatingActionButton = {
+                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+                if (currentRoute == "objetivos") {
+                    FloatingActionButton(
+                        onClick = {
+                        },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Agregar Objetivo")
+                    }
+                }
             }
         ) { innerPadding ->
-            // --- Área de Contenido Principal ---
-            // Aquí es donde deberías mostrar la pantalla/sección correspondiente
-            // basada en uiState.selectedItemRoute.
-            // Por ahora, solo mostramos la ruta seleccionada.
-            // Más adelante, aquí usarías un NavHost de Jetpack Navigation Compose.
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Pantalla actual: ${uiState.selectedItemRoute}")
-
-                // EJEMPLO de cómo mostrarías diferentes pantallas (requiere Navigation Compose):
-                /*
-                NavHost(navController = navController, startDestination = "inicio") {
-                    composable("inicio") { /* Tu Composable para Inicio */ }
-                    composable("registros") { /* Tu Composable para Registros */ }
-                    composable("objetivos") { GoalsScreenActual() } // <-- Aquí iría la pantalla real de Metas
-                    // ... otras rutas
-                }
-                */
-            }
+            AppNavHost(
+                navController = navController,
+                mainViewModel = mainViewModel,
+                paddingValues = innerPadding,
+                startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio" // Ruta inicial
+            )
         }
     }
 }
 
+@Composable
+fun AppNavHost(
+    navController: NavHostController,
+    mainViewModel: MainViewModel,
+    paddingValues: PaddingValues,
+    startDestination: String
+) {
+    val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        composable("inicio") { PlaceholderScreen("Inicio", paddingValues) }
+        composable("registros") { PlaceholderScreen("Registros", paddingValues) }
+        composable("estadisticas") { PlaceholderScreen("Estadísticas", paddingValues) }
+        composable("pagos_programados") { PlaceholderScreen("Pagos Programados", paddingValues) }
+        composable("deudas") { PlaceholderScreen("Deudas", paddingValues) }
+
+        composable("objetivos") {
+            GoalsScreen(
+                paddingValues = paddingValues,
+                onNavigateToCreateGoal = {
+                }
+            )
+        }
+        composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
+        composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", paddingValues) }
+        composable("ajustes") { PlaceholderScreen("Ajustes", paddingValues) }
+
+    }
+}
+
+@Composable
+fun PlaceholderScreen(screenTitle: String, paddingValues: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Pantalla: $screenTitle", style = MaterialTheme.typography.headlineMedium)
+        Text("Contenido de $screenTitle aquí.")
+    }
+}
 
 @Preview(showBackground = true, name = "Main App Scaffold Preview")
 @Composable
 fun MainAppScaffoldPreview() {
     TicoWalletTheme {
-        MainAppScaffold( // Llama al Composable renombrado
+        MainAppScaffold(
             onNotificationsClick = {}
         )
     }
