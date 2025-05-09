@@ -19,16 +19,16 @@ import androidx.compose.foundation.lazy.items
 fun GoalsScreen(
     paddingValues: PaddingValues,
     onNavigateToCreateGoal: () -> Unit,
-    goalsViewModel: GoalsViewModel = viewModel() // Inyectar o obtener ViewModel
+    goalsViewModel: GoalsViewModel = viewModel()
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
-    // Usar las constantes para los títulos de las pestañas asegura consistencia
-    val tabs = listOf(GoalStatus.ACTIVE, GoalStatus.PAUSED, GoalStatus.ACHIEVED) // [cite: 3]
 
-    // Recolectar los estados de las listas filtradas
-    val activeGoals by goalsViewModel.activeGoals.collectAsState() // [cite: 2]
-    val pausedGoals by goalsViewModel.pausedGoals.collectAsState() // [cite: 2]
-    val achievedGoals by goalsViewModel.achievedGoals.collectAsState() // [cite: 2]
+    val tabs = listOf(GoalStatus.ACTIVE, GoalStatus.PAUSED, GoalStatus.ACHIEVED)
+
+
+    val activeGoals by goalsViewModel.activeGoals.collectAsState()
+    val pausedGoals by goalsViewModel.pausedGoals.collectAsState()
+    val achievedGoals by goalsViewModel.achievedGoals.collectAsState()
 
     Column(
         modifier = Modifier
@@ -57,7 +57,6 @@ fun GoalsScreen(
             }
         }
 
-        // Pasar la lista filtrada correspondiente a cada contenido de pestaña
         when (selectedTabIndex) {
             0 -> FilteredGoalsContent(modifier = Modifier.weight(1f), goals = activeGoals, statusTitle = GoalStatus.ACTIVE) // [cite: 3]
             1 -> FilteredGoalsContent(modifier = Modifier.weight(1f), goals = pausedGoals, statusTitle = GoalStatus.PAUSED) // [cite: 3]
@@ -96,7 +95,7 @@ fun FilteredGoalsContent(modifier: Modifier = Modifier, goals: List<Goal>, statu
         }
     } else {
 
-        // ...dentro de FilteredGoalsContent
+
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
@@ -106,7 +105,6 @@ fun FilteredGoalsContent(modifier: Modifier = Modifier, goals: List<Goal>, statu
             items(goals) { goal -> // 'goal' aquí es de tipo Goal
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        // Los errores están en estas líneas:
                         Text(text = goal.name, style = MaterialTheme.typography.titleMedium)
                         Text(text = "Estado: ${goal.state}", style = MaterialTheme.typography.bodySmall)
                         Text(text = "Cantidad: ${goal.currentQuantity} / ${goal.quantity}", style = MaterialTheme.typography.bodySmall)
