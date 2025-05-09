@@ -19,12 +19,12 @@ interface ApiService {
     @Multipart
     @POST("api/user/register")
     suspend fun addUser(@Part("Name") name: RequestBody,
-                         @Part("Password") location: RequestBody,
-                         @Part("Email") description: RequestBody,
-                         @Part("Date") date: RequestBody,
-                         @Part file: MultipartBody.Part?): User
+                         @Part("Email") location: RequestBody,
+                         @Part("Password") description: RequestBody,
+                         @Part("ConfirmPassword") date: RequestBody): User
 
-
+    @POST("/api/user/login")
+    suspend fun signIn(@Body userDto: User) : User
 
 
 //    Goals

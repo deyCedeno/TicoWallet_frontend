@@ -1,9 +1,12 @@
 package com.moviles.ticowallet.models
 
+import java.io.Serializable
+
 data class User (
-    val Id: Int?,
-    val Email: String,
-    val Password: String,
-    val Name: String,
-    val UrlImage: String?
-)
+    val id: Int? = null,
+    val email: String,
+    val password: String?,
+    val confirmPassword: String?,
+    val name: String,
+    val urlImage: String?
+) : Serializable
