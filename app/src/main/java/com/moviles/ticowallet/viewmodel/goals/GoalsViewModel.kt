@@ -53,8 +53,6 @@ class GoalsViewModel : ViewModel() {
 
     fun loadGoals() {
         viewModelScope.launch {
-
-            // TODO: Reemplaza esto con tu lógica real de obtención de datos desde la BD/API
             val calendar = Calendar.getInstance()
             val futureDate: Date
             val pastDate: Date

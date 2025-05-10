@@ -50,7 +50,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     TicoWalletTheme {
-        // Llamar al Composable principal renombrado en la preview
         MainAppScaffold(onNotificationsClick = {})
     }
 }
