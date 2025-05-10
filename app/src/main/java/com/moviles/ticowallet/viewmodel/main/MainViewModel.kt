@@ -2,6 +2,7 @@ package com.moviles.ticowallet.viewmodel.main // <-- Cambiado
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.ui.navigation.MenuItem
 import com.moviles.ticowallet.ui.navigation.defaultMenuItems
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.launch
 data class MainUiState(
     val menuItems: List<MenuItem> = defaultMenuItems,
     val selectedItemRoute: String = menuItems.firstOrNull()?.route ?: "",
-    val userName: String = "Usuario Logueado"
+    val userName: String = Constants.USERNAME
 )
 
 // Renombrado a MainViewModel

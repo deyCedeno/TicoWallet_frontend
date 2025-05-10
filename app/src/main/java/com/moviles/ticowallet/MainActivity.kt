@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.moviles.ticowallet.models.User
 import android.util.Log
+import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.ui.main.MainAppScaffold
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 
@@ -20,6 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val user = intent.getSerializableExtra("user") as? User
         if (user != null) {
+            Constants.USERNAME = user.name
             Log.i("MainActivity", "Usuario logueado: ${user.name} - ${user.email}")
         } else {
             Log.e("MainActivity", "No se recibió usuario, redirigiendo al Login")
