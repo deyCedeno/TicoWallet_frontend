@@ -31,20 +31,20 @@ import androidx.navigation.compose.rememberNavController
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import java.util.*
 
-private val screenBgColor = Color(0xFF27496d) // Azul petróleo oscuro para el fondo de la pantalla
-private val appBarColor = Color(0xFF0A3B4C) // Mismo color para la AppBar
-private val onAppBarColor = Color.White     // Texto y iconos en la AppBar
+private val screenBgColor = Color(0xFF27496d)
+private val appBarColor = Color(0xFF0A3B4C)
+private val onAppBarColor = Color.White
 
-private val textFieldContainerColor = Color(0xFF122850) // Un azul ligeramente más claro para el fondo de los campos
+private val textFieldContainerColor = Color(0xFF122850)
 private val textFieldTextColor = Color.White
 private val textFieldLabelColor = Color.White.copy(alpha = 0.7f)
 private val textFieldCursorColor = Color.White
 
-private val iconSelectorTextColor = Color.White // Para el texto "Seleccionar"
+private val iconSelectorTextColor = Color.White
 private val selectedIconColor = Color.White
 
-private val buttonBackgroundColor = Color(0xFF0c7b93) // Verde/cian brillante para el botón (ajusta este si es necesario)
-private val onButtonBackgroundColor = Color.White // Texto del botón
+private val buttonBackgroundColor = Color(0xFF0c7b93)
+private val onButtonBackgroundColor = Color.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

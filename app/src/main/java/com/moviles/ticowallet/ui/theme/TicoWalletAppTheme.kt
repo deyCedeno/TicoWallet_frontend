@@ -15,45 +15,40 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Define tus paletas de colores usando los colores de Color.kt
-// Asegúrate que estos nombres (Purple40, PurpleGrey40, etc.) existan en tu Color.kt
-// Si usaste otros nombres, ajústalos aquí.
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-    // Puedes definir más colores: background, surface, error, onPrimary, etc.
-    // background = Color(0xFF1C1B1F),
-    // surface = Color(0xFF1C1B1F),
-    // onPrimary = Color.Black,
-    // onSecondary = Color.Black,
-    // onTertiary = Color.Black,
-    // onBackground = Color(0xFFFFFBFE),
-    // onSurface = Color(0xFFFFFBFE),
+    primary = colorDarkBlue1,
+    secondary = colorTeal,
+    tertiary = colorLightBlue,
+    background = colorDarkBlue1,
+    surface = colorDarkBlue2,
+    onPrimary = colorWhite,
+    onSecondary = colorWhite,
+    onTertiary = colorDarkBlue1,
+    onBackground = colorWhite,
+    onSurface = colorWhite,
+    primaryContainer = colorDarkBlue1,
+    onPrimaryContainer = colorWhite
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-    // Colores por defecto para light theme
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = colorDarkBlue1,
+    secondary = colorTeal,
+    tertiary = colorLightBlue,
+    background = colorWhite,
+    surface = colorWhite,
+    onPrimary = colorWhite,
+    onSecondary = colorWhite,
+    onTertiary = colorDarkBlue1,
+    onBackground = colorDarkBlue1,
+    onSurface = colorDarkBlue1,
+    primaryContainer = colorDarkBlue1,
+    onPrimaryContainer = colorWhite
 )
 
-// --- NUESTRO COMPOSABLE DE TEMA ---
 @Composable
-fun TicoWalletAppTheme( // <--- ESTE ES EL NOMBRE QUE USAREMOS
+fun TicoWalletAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -65,18 +60,17 @@ fun TicoWalletAppTheme( // <--- ESTE ES EL NOMBRE QUE USAREMOS
         else -> LightColorScheme
     }
     val view = LocalView.current
-    if (!view.isInEditMode) { // isInEditMode previene crash en previews si el side effect falla
+    if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb() // Color barra de estado
-            // Controla si los iconos de la barra de estado son oscuros o claros
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.statusBarColor = colorDarkBlue1.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Usa la tipografía definida en Type.kt
-        content = content // Aquí se renderizará el contenido de tu app envuelto en el tema
+        typography = Typography,
+        content = content
     )
 }
