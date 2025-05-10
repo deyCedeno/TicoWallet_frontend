@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
+import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.network.RetrofitInstance
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -14,6 +15,7 @@ import okhttp3.RequestBody
 import retrofit2.HttpException
 import java.io.File
 import com.moviles.ticowallet.models.User
+import kotlinx.coroutines.flow.MutableStateFlow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -48,8 +50,20 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
                 Log.i("ViewModelInfo", "User: ${user}")
 
                 val response = RetrofitInstance.api.signIn(user)
+                val token = response.headers()["authorization"]?.removePrefix("Bearer ")?.trim()
+                if (!token.isNullOrEmpty()) {
+                    Constants.AUTH_TOKEN = token
+
+                    Log.i("ViewModelInfo", "Token saved: $token")
+                }
+
                 Log.i("ViewModelInfo", "Response: ${response}")
-                onSuccess(response)
+                val userBody = response.body()
+                if (userBody != null) {
+                    onSuccess(userBody)
+                } else {
+                    onError("Respuesta vacía del servidor")
+                }
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
                 Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
@@ -99,6 +113,22 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
+    fun getUser(onSuccess: (User) -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getUser()
+                Log.i("ViewModelInfo", "Response: ${response}")
+                onSuccess(response)
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+                onError("Usuario no encontrado")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+                onError("Error inesperado al obtener el usuario")
+            }
+        }
+    }
 }
 
 fun Uri.getPath(context: Context): String? {

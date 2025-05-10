@@ -33,6 +33,7 @@ import com.moviles.ticowallet.ui.goals.GoalsScreen
 import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
+import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,7 +185,8 @@ fun AppNavHost(
         composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", paddingValues) }
         composable("ajustes") {
             TicoWalletTheme {
-                UserProfileScreen(onNavigateBack ={}, onLogout = {
+                val viewModel: UserViewModel = viewModel()
+                UserProfileScreen(viewModel, onNavigateBack ={}, onLogout = {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                     if (context is ComponentActivity) {
                         context.finish()

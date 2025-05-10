@@ -18,11 +18,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moviles.ticowallet.common.Constants
+import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
+import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
+fun UserProfileScreen(viewModel: UserViewModel, onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
+    val userState = remember { mutableStateOf<User?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getUser(
+            onSuccess = { user ->
+                userState.value = user
+            },
+            onError = { error ->
+                println("Error al obtener usuario: $error")
+            }
+        )
+    }
+
     TicoWalletTheme {
         Scaffold(
             topBar = {
@@ -76,7 +91,7 @@ fun UserProfileScreen(onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}
                 Spacer(modifier = Modifier.height(24.dp))
 
                 OutlinedTextField(
-                    value = Constants.USERNAME,
+                    value = userState.value?.name ?: "",
                     onValueChange = { },
                     label = { Text("Nombre completo") },
                     modifier = Modifier.fillMaxWidth(),
@@ -85,7 +100,7 @@ fun UserProfileScreen(onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
-                    value = Constants.EMAIL,
+                    value = userState.value?.email ?: "",
                     onValueChange = {},
                     label = { Text("Correo") },
                     modifier = Modifier.fillMaxWidth(),

@@ -29,7 +29,7 @@ interface ApiService {
                          @Part("ConfirmPassword") confirmPassword: RequestBody): User
 
     @POST("/api/user/login")
-    suspend fun signIn(@Body userDto: User) : User
+    suspend fun signIn(@Body userDto: User) : Response<User>
 
     @POST("/api/user/send_code")
     suspend fun sendCode(@Body userDto: User) : User
@@ -37,6 +37,8 @@ interface ApiService {
     @POST("/api/user/reset_password")
     suspend fun resetPassword(@Body resetPasswordDto: ResetPasswordRequestDto): User
 
+    @GET("/api/user")
+    suspend fun getUser() : User
 
     //    GOAL
     @GET("api/goal/get_all")
