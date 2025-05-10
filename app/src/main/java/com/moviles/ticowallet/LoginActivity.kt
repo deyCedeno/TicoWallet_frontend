@@ -92,7 +92,7 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
             Button(
                 onClick = {
-                    val loginUser = User(null, email, password, "", "", "")
+                    val loginUser = User(null, email, password, "", "", "", "")
                     viewModel.signIn(
                         user = loginUser,
                         onSuccess = { user ->
@@ -113,7 +113,7 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
             TextButton(
                 onClick = {
-                    onNavigate(RecoverPasswordPUnoActivity::class.java)
+                    onNavigate(RecoverPasswordPUneActivity::class.java)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

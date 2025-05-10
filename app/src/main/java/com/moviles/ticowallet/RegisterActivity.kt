@@ -118,7 +118,7 @@ fun RegisterScreen(viewModel: UserViewModel) {
 
         Button(
             onClick = {
-                viewModel.addUser(User(null, email, password, confirmPassword, name, "" ))
+                viewModel.addUser(User(null, email, password, confirmPassword, name, "", "" ))
 
                 println("Nombre: $name, Correo: $email, Contraseña: $password, Confirmar Contraseña: $confirmPassword")
             },

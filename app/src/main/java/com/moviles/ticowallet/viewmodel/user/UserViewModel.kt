@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
 import com.moviles.ticowallet.network.RetrofitInstance
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
@@ -75,14 +76,22 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-    fun resetPassword(user: User) {
+    fun resetPassword(user: User, onSuccess: (User) -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 Log.i("ViewModelInfo", "User: ${user}")
-                val response = RetrofitInstance.api.resetPassword(user)
+                val userResetPasswordDto = ResetPasswordRequestDto(
+                    email = user.email ?: "",
+                    code = user.code ?: "",
+                    newPassword = user.password ?: "",
+                    confirmPassword = user.confirmPassword ?: ""
+                )
+                val response = RetrofitInstance.api.resetPassword(userResetPasswordDto)
+                onSuccess(response)
                 Log.i("ViewModelInfo", "Response: ${response}")
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
+                onError("Error al cambiar la contraseña.")
                 Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
             } catch (e: Exception) {
                 Log.e("ViewModelError", "Error: ${e.message}", e)
@@ -116,3 +125,4 @@ fun createUserRequestBody(
 
     return listOf(name, email, password, confirmPassword)
 }
+

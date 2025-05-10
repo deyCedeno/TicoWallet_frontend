@@ -19,14 +19,14 @@ import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
-class RecoverPasswordPUnoActivity : ComponentActivity() {
+class RecoverPasswordPUneActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
-                RecoverPasswordPUnoScreen(viewModel)
+                RecoverPasswordPUneScreen(viewModel)
             }
         }
     }
@@ -34,7 +34,7 @@ class RecoverPasswordPUnoActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecoverPasswordPUnoScreen(viewModel: UserViewModel) {
+fun RecoverPasswordPUneScreen(viewModel: UserViewModel) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
 
@@ -83,8 +83,14 @@ fun RecoverPasswordPUnoScreen(viewModel: UserViewModel) {
 
             Button(
                 onClick = {
-                    viewModel.sendCode(User(null, email, "", "", "", "" ))
+                    viewModel.sendCode(User(null, email, "", "", "", "", "" ))
                     println("Correo para recuperación: $email")
+                    val intent = Intent(context, RecoverPasswordPTwoActivity::class.java)
+                    intent.putExtra("email", email)
+                    context.startActivity(intent)
+                    if (context is ComponentActivity) {
+                        context.finish()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

@@ -35,7 +35,12 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.TicoWallet" />
         <activity
-            android:name=".RecoverPasswordPUnoActivity"
+            android:name=".RecoverPasswordPUneActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.TicoWallet" />
+        <activity
+            android:name=".RecoverPasswordPTwoActivity"
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/Theme.TicoWallet" />

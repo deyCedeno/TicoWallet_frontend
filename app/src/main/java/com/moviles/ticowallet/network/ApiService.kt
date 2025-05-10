@@ -1,9 +1,11 @@
 package com.moviles.ticowallet.network
 
+import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -22,9 +24,9 @@ interface ApiService {
     @Multipart
     @POST("api/user/register")
     suspend fun addUser(@Part("Name") name: RequestBody,
-                         @Part("Email") location: RequestBody,
-                         @Part("Password") description: RequestBody,
-                         @Part("ConfirmPassword") date: RequestBody): User
+                         @Part("Email") email: RequestBody,
+                         @Part("Password") password: RequestBody,
+                         @Part("ConfirmPassword") confirmPassword: RequestBody): User
 
     @POST("/api/user/login")
     suspend fun signIn(@Body userDto: User) : User
@@ -33,9 +35,10 @@ interface ApiService {
     suspend fun sendCode(@Body userDto: User) : User
 
     @POST("/api/user/reset_password")
-    suspend fun resetPassword(@Body userDto: User): User
+    suspend fun resetPassword(@Body resetPasswordDto: ResetPasswordRequestDto): User
 
-//    GOAL
+
+    //    GOAL
     @GET("api/goal/get_all")
     suspend fun getGoals(): List<Goal>
 

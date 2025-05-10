@@ -8,5 +8,6 @@ data class User (
     val password: String?,
     val confirmPassword: String?,
     val name: String,
-    val urlImage: String?
+    val urlImage: String?,
+    val code: String?
 ) : Serializable
