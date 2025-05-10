@@ -59,6 +59,37 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
             }
         }
     }
+
+    fun sendCode(user: User) {
+        viewModelScope.launch {
+            try {
+                Log.i("ViewModelInfo", "User: ${user}")
+                val response = RetrofitInstance.api.sendCode(user)
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
+    fun resetPassword(user: User) {
+        viewModelScope.launch {
+            try {
+                Log.i("ViewModelInfo", "User: ${user}")
+                val response = RetrofitInstance.api.resetPassword(user)
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
 }
 
 fun Uri.getPath(context: Context): String? {

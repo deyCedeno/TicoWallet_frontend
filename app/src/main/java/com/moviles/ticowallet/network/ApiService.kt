@@ -29,6 +29,12 @@ interface ApiService {
     @POST("/api/user/login")
     suspend fun signIn(@Body userDto: User) : User
 
+    @POST("/api/user/send_code")
+    suspend fun sendCode(@Body userDto: User) : User
+
+    @POST("/api/user/reset_password")
+    suspend fun resetPassword(@Body userDto: User): User
+
 //    GOAL
     @GET("api/goal/get_all")
     suspend fun getGoals(): List<Goal>

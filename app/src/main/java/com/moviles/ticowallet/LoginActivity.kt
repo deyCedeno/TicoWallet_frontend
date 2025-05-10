@@ -113,7 +113,7 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
             TextButton(
                 onClick = {
-                    
+                    onNavigate(RecoverPasswordPUnoActivity::class.java)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
