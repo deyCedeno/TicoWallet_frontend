@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
         val user = intent.getSerializableExtra("user") as? User
         if (user != null) {
             Constants.USERNAME = user.name
-            Constants.EMAIL = user.email
             Log.i("MainActivity", "Usuario logueado: ${user.name} - ${user.email}")
         } else {
             Log.e("MainActivity", "No se recibió usuario, redirigiendo al Login")
