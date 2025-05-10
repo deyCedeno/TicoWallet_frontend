@@ -70,7 +70,7 @@ fun UserProfileScreen(onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}
                         .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         .padding(8.dp)
                 )
-                TextButton(onClick = { /* TODO: Implementar lógica para editar foto */ }) {
+                TextButton(onClick = { }) {
                     Text("Editar foto", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
