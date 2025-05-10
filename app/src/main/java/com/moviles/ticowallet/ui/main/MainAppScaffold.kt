@@ -1,5 +1,7 @@
 package com.moviles.ticowallet.ui.main
 
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,18 +18,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.moviles.ticowallet.LoginActivity
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
 import com.moviles.ticowallet.ui.goals.GoalsScreen
 import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.theme.*
+import com.moviles.ticowallet.ui.user.UserProfileScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,7 +154,7 @@ fun AppNavHost(
     startDestination: String
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
-
+    val context = LocalContext.current
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -177,7 +182,16 @@ fun AppNavHost(
         }
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
         composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", paddingValues) }
-        composable("ajustes") { PlaceholderScreen("Ajustes", paddingValues) }
+        composable("ajustes") {
+            TicoWalletTheme {
+                UserProfileScreen(onNavigateBack ={}, onLogout = {
+                    context.startActivity(Intent(context, LoginActivity::class.java))
+                    if (context is ComponentActivity) {
+                        context.finish()
+                    }
+                })
+            }
+        }
 
     }
 }
@@ -207,15 +221,5 @@ fun PlaceholderScreen(screenTitle: String, paddingValues: PaddingValues) {
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Main App Scaffold Preview")
-@Composable
-fun MainAppScaffoldPreview() {
-    TicoWalletTheme {
-        MainAppScaffold(
-            onNotificationsClick = {}
-        )
     }
 }
