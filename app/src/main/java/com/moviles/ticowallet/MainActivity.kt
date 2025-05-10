@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-// Importar el Composable desde su nueva ubicación
 import com.moviles.ticowallet.ui.main.MainAppScaffold
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 
@@ -19,7 +18,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             TicoWalletTheme {
                 val context = LocalContext.current
-                // Llamar al Composable principal renombrado
                 MainAppScaffold(
                     onNotificationsClick = {
                         Toast.makeText(context, "Notificaciones presionadas", Toast.LENGTH_SHORT).show()
@@ -34,7 +32,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     TicoWalletTheme {
-        // Llamar al Composable principal renombrado en la preview
         MainAppScaffold(onNotificationsClick = {})
     }
 }

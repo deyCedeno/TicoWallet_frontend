@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt") // Para Room
+    id("com.google.dagger.hilt.android")
     //id("com.google.gms.google-services")
 }
 
@@ -98,4 +99,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation("com.google.dagger:hilt-android:2.51.1") // O la versión más reciente
+    kapt("com.google.dagger:hilt-compiler:2.51.1") // O ksp para KSP
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // Para hiltViewModel()
+    implementation("androidx.navigation:navigation-compose:2.9.0")
 }
