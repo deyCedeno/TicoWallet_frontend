@@ -1,10 +1,13 @@
 package com.moviles.ticowallet.ui.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
@@ -22,8 +25,9 @@ import androidx.navigation.compose.*
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
-import com.moviles.ticowallet.ui.navigation.MenuItem
 import com.moviles.ticowallet.ui.goals.GoalsScreen
+import com.moviles.ticowallet.ui.goals.CreateGoalScreen
+import com.moviles.ticowallet.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +51,6 @@ fun MainAppScaffold(
             }
         }
     }
-
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -73,22 +76,35 @@ fun MainAppScaffold(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Tico Wallet") },
+                    title = {
+                        Text(
+                            text = uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio",
+                            color = colorWhite
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Abrir menú")
+                            Icon(
+                                Icons.Filled.Menu,
+                                contentDescription = "Abrir menú",
+                                tint = colorWhite
+                            )
                         }
                     },
                     actions = {
                         IconButton(onClick = onNotificationsClick) {
-                            Icon(Icons.Filled.Notifications, contentDescription = "Ver notificaciones")
+                            Icon(
+                                Icons.Filled.Notifications,
+                                contentDescription = "Ver notificaciones",
+                                tint = colorWhite
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = colorDarkBlue1,
+                        titleContentColor = colorWhite,
+                        navigationIconContentColor = colorWhite,
+                        actionIconContentColor = colorWhite
                     )
                 )
             },
@@ -97,21 +113,30 @@ fun MainAppScaffold(
                 if (currentRoute == "objetivos") {
                     FloatingActionButton(
                         onClick = {
+                            navController.navigate("crear_objetivo_screen")
                         },
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        containerColor = colorTeal,
+                        contentColor = colorWhite,
+                        shape = CircleShape
                     ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Agregar Objetivo")
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
                     }
                 }
-            }
+            },
+            containerColor = colorDarkBlue1
         ) { innerPadding ->
-            AppNavHost(
-                navController = navController,
-                mainViewModel = mainViewModel,
-                paddingValues = innerPadding,
-                startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio" // Ruta inicial
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorDarkBlue1)
+            ) {
+                AppNavHost(
+                    navController = navController,
+                    mainViewModel = mainViewModel,
+                    paddingValues = innerPadding,
+                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
+                )
+            }
         }
     }
 }
@@ -140,7 +165,14 @@ fun AppNavHost(
             GoalsScreen(
                 paddingValues = paddingValues,
                 onNavigateToCreateGoal = {
+                    navController.navigate("crear_objetivo_screen")
                 }
+            )
+        }
+        composable("crear_objetivo_screen") {
+            CreateGoalScreen(
+                navController = navController,
+                paddingValues = paddingValues
             )
         }
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
@@ -152,16 +184,29 @@ fun AppNavHost(
 
 @Composable
 fun PlaceholderScreen(screenTitle: String, paddingValues: PaddingValues) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(colorWhite)
             .padding(paddingValues)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        Text("Pantalla: $screenTitle", style = MaterialTheme.typography.headlineMedium)
-        Text("Contenido de $screenTitle aquí.")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "Pantalla: $screenTitle",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                "Contenido de $screenTitle aquí.",
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
     }
 }
 

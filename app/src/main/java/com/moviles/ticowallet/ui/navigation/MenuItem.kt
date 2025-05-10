@@ -1,5 +1,4 @@
-package com.moviles.ticowallet.ui.navigation // <-- Cambiado
-
+package com.moviles.ticowallet.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -16,7 +15,7 @@ val defaultMenuItems = listOf(
     MenuItem("estadisticas", "Estadísticas", Icons.Filled.BarChart),
     MenuItem("pagos_programados", "Pagos programados", Icons.Filled.Schedule),
     MenuItem("deudas", "Deudas", Icons.Filled.ReceiptLong),
-    MenuItem("objetivos", "Objetivos", Icons.Filled.Flag), // Este 'objetivos' es la ruta para la sección Metas
+    MenuItem("objetivos", "Objetivos", Icons.Filled.Flag),
     MenuItem("garantias", "Garantías", Icons.Filled.VerifiedUser),
     MenuItem("tipo_cambio", "Tipo de cambio", Icons.Filled.CurrencyExchange),
     MenuItem("ajustes", "Ajustes", Icons.Filled.Settings)
