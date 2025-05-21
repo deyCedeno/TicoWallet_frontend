@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -18,9 +19,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
+
+private val screenBgColor = Color(0xFF27496d)
+private val appBarColor = Color(0xFF0A3B4C)
+private val onAppBarColor = Color.White
+
+private val textFieldContainerColor = Color(0xFF122850)
+private val textFieldTextColor = Color.White
+private val textFieldLabelColor = Color.White.copy(alpha = 0.7f)
+private val textFieldCursorColor = Color.White
+
+private val buttonBackgroundColor = Color(0xFF0c7b93)
+private val onButtonBackgroundColor = Color.White
+
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,24 +61,17 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(screenBgColor)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Text(
+            text = "Log in",
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color.White,
             modifier = Modifier.padding(bottom = 32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ArrowForward,
-                contentDescription = stringResource(android.R.string.ok),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(
-                text = "Sign in",
-                style = MaterialTheme.typography.headlineSmall
-            )
-        }
+        )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -74,7 +82,15 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo") },
+                label = { Text("Correo", color = textFieldLabelColor) },
+                textStyle = LocalTextStyle.current.copy(color = textFieldTextColor),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = textFieldContainerColor,
+                    focusedContainerColor = textFieldContainerColor,
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    cursorColor = textFieldCursorColor
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -83,8 +99,16 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                label = { Text("Contraseña", color = textFieldLabelColor) },
+                textStyle = LocalTextStyle.current.copy(color = textFieldTextColor),
+                visualTransformation = PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = textFieldContainerColor,
+                    focusedContainerColor = textFieldContainerColor,
+                    unfocusedBorderColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    cursorColor = textFieldCursorColor
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
@@ -92,11 +116,10 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
             Button(
                 onClick = {
-                    val loginUser = User(null, email, password, "", "", "", "")
+                    val loginUser = User(null, "danielbrionesvargas@gmail.com", "ADbv0415..", "", "", "", "")
                     viewModel.signIn(
                         user = loginUser,
                         onSuccess = { user ->
-
                             val intent = Intent(context, MainActivity::class.java)
                             intent.putExtra("user", user)
                             context.startActivity(intent)
@@ -106,15 +129,17 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
                         }
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonBackgroundColor,
+                    contentColor = onButtonBackgroundColor
+                )
             ) {
                 Text("Iniciar sesión")
             }
 
             TextButton(
-                onClick = {
-                    onNavigate(RecoverPasswordPUneActivity::class.java)
-                },
+                onClick = { onNavigate(RecoverPasswordPUneActivity::class.java) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
@@ -124,35 +149,28 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
                     text = "¿Olvidaste tu contraseña?",
                     style = MaterialTheme.typography.bodySmall,
                     textDecoration = TextDecoration.Underline,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Color.White
                 )
             }
 
-            Row(
+            Divider(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Divider(modifier = Modifier.weight(1f), color = Color.Gray, thickness = 1.dp)
-                Text(
-                    text = "O",
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-                Divider(modifier = Modifier.weight(1f), color = Color.Gray, thickness = 1.dp)
-            }
+                color = Color.White
+            )
 
             Button(
-                onClick = {
-                    onNavigate(RegisterActivity::class.java)
-                },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onNavigate(RegisterActivity::class.java) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonBackgroundColor,
+                    contentColor = onButtonBackgroundColor
+                )
             ) {
                 Text("¿No tienes una cuenta? Regístrate")
             }
         }
     }
 }
+
