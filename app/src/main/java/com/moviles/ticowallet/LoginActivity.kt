@@ -116,7 +116,7 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
             Button(
                 onClick = {
-                    val loginUser = User(null, "danielbrionesvargas@gmail.com", "ADbv0415..", "", "", "", "")
+                    val loginUser = User(null, email, password, "", "", "", "")
                     viewModel.signIn(
                         user = loginUser,
                         onSuccess = { user ->
