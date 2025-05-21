@@ -1,5 +1,7 @@
 package com.moviles.ticowallet.viewmodel.goals
 
+import android.app.Application
+import android.util.Log
 import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -7,15 +9,21 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Smartphone
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.models.Goal
+import com.moviles.ticowallet.network.RetrofitInstance
+import com.moviles.ticowallet.viewmodel.user.createUserRequestBody
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import okhttp3.RequestBody
+import retrofit2.HttpException
 import java.util.Calendar
 import java.util.Date
 
@@ -25,8 +33,7 @@ object GoalStatus {
     const val PAUSED = "Pausado"
     const val ACHIEVED = "Conseguido"
 }
-
-class GoalsViewModel : ViewModel() {
+class GoalsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _allGoals = MutableStateFlow<List<Goal>>(emptyList())
 
@@ -63,59 +70,20 @@ class GoalsViewModel : ViewModel() {
             pastDate = calendar.time
 
 
-            _allGoals.value = listOf(
-                Goal(
-                    id = "1",
-                    name = "Viaje a la playa",
-                    quantity = 500000.0,
-                    goalDate = futureDate,
-                    currentQuantity = 150000.0,
-                    icon = "beach_access",
-                    state = GoalStatus.ACTIVE,
-                    note = "Ahorro para vacaciones en Guanacaste"
-                ),
-                Goal(
-                    id = "2",
-                    name = "Nuevo celular",
-                    quantity = 800000.0,
-                    goalDate = futureDate,
-                    currentQuantity = 750000.0,
-                    icon = "smartphone",
-                    state = GoalStatus.ACTIVE,
-                    note = "Ahorro para cambiar de teléfono"
-                ),
-                Goal(
-                    id = "3",
-                    name = "Regalo Navidad",
-                    quantity = 100000.0,
-                    goalDate = pastDate,
-                    currentQuantity = 100000.0,
-                    icon = "card_giftcard",
-                    state = GoalStatus.ACHIEVED,
-                    note = "Comprar regalos diciembre"
-                ),
-                Goal(
-                    id = "4",
-                    name = "Entrada de casa",
-                    quantity = 5000000.0,
-                    goalDate = futureDate,
-                    currentQuantity = 250000.0,
-                    icon = "home",
-                    state = GoalStatus.ACTIVE,
-                    note = "Prima para la casa propia"
-                ),
+            try {
 
-                Goal(
-                    id = "5",
-                    name = "Curso de Cocina",
-                    quantity = 150000.0,
-                    goalDate = futureDate,
-                    currentQuantity = 25000.0,
-                    icon = "home",
-                    state = GoalStatus.PAUSED,
-                    note = "Curso de cocina temporalmente en espera"
-                )
-            )
+                val response = RetrofitInstance.api.getGoals()
+                _allGoals.value = response
+
+                Log.i("ViewModelInfo", "Response goals: ${response}")
+
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+
 
         }
     }
@@ -142,4 +110,23 @@ class GoalsViewModel : ViewModel() {
             else -> androidx.compose.material.icons.Icons.Filled.Flag
         }
     }
+
+    fun createGoal(goal: Goal) {
+        viewModelScope.launch {
+            try {
+                Log.i("ViewModelInfo", "Goal: ${goal}")
+
+                val response = RetrofitInstance.api.createGoal(
+                    goal
+                )
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
 }

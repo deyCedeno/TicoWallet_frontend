@@ -24,13 +24,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
 import com.moviles.ticowallet.ui.goals.GoalsScreen
 import com.moviles.ticowallet.ui.goals.CreateGoalScreen
+import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
@@ -159,17 +162,18 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
-        composable("inicio") { PlaceholderScreen("Inicio", paddingValues) }
-        composable("registros") { PlaceholderScreen("Registros", paddingValues) }
-        composable("estadisticas") { PlaceholderScreen("Estadísticas", paddingValues) }
-        composable("pagos_programados") { PlaceholderScreen("Pagos Programados", paddingValues) }
-        composable("deudas") { PlaceholderScreen("Deudas", paddingValues) }
+        composable("inicio") { PlaceholderScreen("Inicio", PaddingValues()) }
+        composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
+        composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
+        composable("pagos_programados") { PlaceholderScreen("Pagos Programados", PaddingValues()) }
+        composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
 
         composable("objetivos") {
             GoalsScreen(
-                paddingValues = paddingValues,
+                navController = navController,
+                paddingValues = PaddingValues(),
                 onNavigateToCreateGoal = {
                     navController.navigate("crear_objetivo_screen")
                 }
@@ -178,7 +182,17 @@ fun AppNavHost(
         composable("crear_objetivo_screen") {
             CreateGoalScreen(
                 navController = navController,
-                paddingValues = paddingValues
+                paddingValues = PaddingValues()
+            )
+        }
+        composable(
+            route = "detalle_objetivo_screen/{goalId}",
+            arguments = listOf(navArgument("goalId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val goalId = backStackEntry.arguments?.getString("goalId")
+            GoalDetailScreen(
+                navController = navController,
+                goalId = goalId
             )
         }
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }

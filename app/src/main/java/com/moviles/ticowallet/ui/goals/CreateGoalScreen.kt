@@ -87,6 +87,7 @@ fun CreateGoalScreen(
     TicoWalletTheme(darkTheme = true) {
         Scaffold(
             containerColor = screenBgColor,
+            /*
             topBar = {
                 TopAppBar(
                     title = {
@@ -117,7 +118,7 @@ fun CreateGoalScreen(
                     modifier = Modifier.height(64.dp)
                 )
             }
-
+            */
         ) { innerPaddingScaffoldCrear ->
             Column(
                 modifier = Modifier

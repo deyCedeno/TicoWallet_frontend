@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             TicoWalletTheme {
                 val context = LocalContext.current
-                // Llamar al Composable principal renombrado
                 MainAppScaffold(
                     onNotificationsClick = {
                         Toast.makeText(context, "Notificaciones presionadas", Toast.LENGTH_SHORT).show()

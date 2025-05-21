@@ -1,6 +1,7 @@
 package com.moviles.ticowallet.ui.goals
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +22,8 @@ import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import com.moviles.ticowallet.navigation.AppDestinations
 import com.moviles.ticowallet.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,29 +31,29 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoalsScreen(
+    navController: NavController,
     paddingValues: PaddingValues,
     onNavigateToCreateGoal: () -> Unit,
     goalsViewModel: GoalsViewModel = viewModel()
 ) {
     var selectedTabIndex by remember { mutableStateOf(0) }
-
     val tabs = listOf("Activo", "Pausado", "Conseguido")
 
     val activeGoals by goalsViewModel.activeGoals.collectAsState()
     val pausedGoals by goalsViewModel.pausedGoals.collectAsState()
     val achievedGoals by goalsViewModel.achievedGoals.collectAsState()
 
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues),
-
         containerColor = colorDarkBlue1
-    ) { innerPadding ->
+    ) { innerScaffoldPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerScaffoldPadding)
                 .background(colorDarkBlue1)
         ) {
             TabRow(
@@ -93,19 +96,22 @@ fun GoalsScreen(
                     modifier = Modifier.weight(1f),
                     goals = activeGoals,
                     statusTitle = "Activo",
-                    goalsViewModel = goalsViewModel
+                    goalsViewModel = goalsViewModel,
+                    navController = navController
                 )
                 1 -> FilteredGoalsContent(
                     modifier = Modifier.weight(1f),
                     goals = pausedGoals,
                     statusTitle = "Pausado",
-                    goalsViewModel = goalsViewModel
+                    goalsViewModel = goalsViewModel,
+                    navController = navController
                 )
                 2 -> FilteredGoalsContent(
                     modifier = Modifier.weight(1f),
                     goals = achievedGoals,
                     statusTitle = "Conseguido",
-                    goalsViewModel = goalsViewModel
+                    goalsViewModel = goalsViewModel,
+                    navController = navController
                 )
             }
         }
@@ -117,7 +123,8 @@ fun FilteredGoalsContent(
     modifier: Modifier = Modifier,
     goals: List<Goal>,
     statusTitle: String,
-    goalsViewModel: GoalsViewModel
+    goalsViewModel: GoalsViewModel,
+    navController: NavController
 ) {
     if (goals.isEmpty()) {
         Box(
@@ -141,14 +148,22 @@ fun FilteredGoalsContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(goals) { goal ->
-                GoalCard(goal, goalsViewModel)
+                GoalCard(
+                    goal = goal,
+                    goalsViewModel = goalsViewModel,
+                    navController = navController
+                )
             }
         }
     }
 }
 
 @Composable
-fun GoalCard(goal: Goal, goalsViewModel: GoalsViewModel) {
+fun GoalCard(
+    goal: Goal,
+    goalsViewModel: GoalsViewModel,
+    navController: NavController
+) {
     val progress = if (goal.quantity > 0) {
         (goal.currentQuantity / goal.quantity).coerceIn(0.0, 1.0).toFloat()
     } else {
@@ -157,21 +172,27 @@ fun GoalCard(goal: Goal, goalsViewModel: GoalsViewModel) {
 
     val progressPercent = (progress * 100).toInt()
 
-    val dateFormat = SimpleDateFormat("dd/M/yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val formattedDate = goal.goalDate?.let { dateFormat.format(it) }
 
     val icon = when (goal.icon.lowercase()) {
         "home" -> Icons.Default.Home
         "directions_car" -> Icons.Default.DirectionsCar
+
         else -> goalsViewModel.getIconVector(goal.icon)
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = colorDarkBlue2
-        ),
-        shape = RoundedCornerShape(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+
+                navController.navigate("${AppDestinations.GOAL_DETAIL_ROUTE}/${goal.id}")
+            }
+
+        ,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = colorDarkBlue2)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -239,13 +260,13 @@ fun GoalCard(goal: Goal, goalsViewModel: GoalsViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Ahorrado: CRC ${formatAmount(goal.currentQuantity.toLong())}",
+                text = "Ahorrado: CRC ${formatAmount(goal.currentQuantity)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colorGreen1
             )
 
             Text(
-                text = "Objetivo: CRC ${formatAmount(goal.quantity.toLong())}",
+                text = "Objetivo: CRC ${formatAmount(goal.quantity)}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colorWhite
             )
@@ -253,10 +274,18 @@ fun GoalCard(goal: Goal, goalsViewModel: GoalsViewModel) {
     }
 }
 
-fun formatAmount(amount: Long): String {
-    return amount.toString()
+
+fun formatAmount(amount: Double): String {
+    val longAmount = amount.toLong()
+    return longAmount.toString()
         .reversed()
         .chunked(3)
         .joinToString(".")
         .reversed()
 }
+
+
+// fun formatAmountWithDecimals(amount: Double): String {
+//    val formatter = DecimalFormat("#,###.00") // Para dos decimales
+//    return formatter.format(amount)
+// }
