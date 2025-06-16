@@ -164,7 +164,6 @@ fun CreateGoalScreen(
                     TextField(
                         value = nameGoal,
                         onValueChange = { nameGoal = it },
-                        //label = { Text("Nombre del objetivo") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
@@ -184,7 +183,6 @@ fun CreateGoalScreen(
                     TextField(
                         value = quantityGoal,
                         onValueChange = { quantityGoal = it },
-                        //label = { Text("Monto del objetivo") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
@@ -209,7 +207,6 @@ fun CreateGoalScreen(
                     TextField(
                         value = currentQuantity,
                         onValueChange = { currentQuantity = it },
-                        //label = { Text("Saldo actual") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
