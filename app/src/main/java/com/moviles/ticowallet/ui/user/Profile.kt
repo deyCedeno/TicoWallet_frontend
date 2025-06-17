@@ -42,7 +42,7 @@ fun UserProfileScreen(viewModel: UserViewModel, onNavigateBack: () -> Unit = {},
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Ajustes") },
+                    title = { Text("Atrás") },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
