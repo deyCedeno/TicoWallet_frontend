@@ -4,6 +4,9 @@ package com.moviles.ticowallet.viewmodel.exchangerate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviles.ticowallet.network.ExternalRetrofitClient
+import com.moviles.ticowallet.network.RetrofitInstance
+import com.moviles.ticowallet.models.CreateExchangeRateDto
+import com.moviles.ticowallet.models.BCCRExchangeRate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,10 +19,11 @@ data class ExchangeRateUiState(
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
 
+    // USD rates
     val usdCompra: Double = 0.0,
     val usdVenta: Double = 0.0,
 
-
+    // EUR rates
     val eurCompra: Double = 0.0,
     val eurVenta: Double = 0.0,
 
@@ -49,14 +53,14 @@ class ExchangeRateViewModel : ViewModel() {
                     val bccrData = bccrResponse.body()!!
 
 
-                    var eurToUsd = 0.85
+                    var eurToUsd = 0.85 // Fallback rate
                     try {
                         val eurResponse = exchangeRateService.getExchangeRatesFromUSD()
                         if (eurResponse.isSuccessful && eurResponse.body() != null) {
                             eurToUsd = eurResponse.body()?.rates?.get("EUR") ?: 0.85
                         }
                     } catch (e: Exception) {
-                        // Usar tasa fallback para EUR
+
                     }
 
 
@@ -72,6 +76,9 @@ class ExchangeRateViewModel : ViewModel() {
                         lastUpdated = formatDate(bccrData.fecha),
                         errorMessage = null
                     )
+
+
+                    saveToBackend(bccrData, eurToUsd)
 
                 } else {
                     _uiState.value = _uiState.value.copy(
@@ -100,7 +107,6 @@ class ExchangeRateViewModel : ViewModel() {
                 if (bccrResponse.isSuccessful && bccrResponse.body() != null) {
                     val bccrData = bccrResponse.body()!!
 
-
                     var eurToUsd = 0.85
                     try {
                         val eurResponse = exchangeRateService.getExchangeRatesFromUSD()
@@ -124,6 +130,9 @@ class ExchangeRateViewModel : ViewModel() {
                         lastUpdated = formatDate(bccrData.fecha),
                         errorMessage = null
                     )
+
+
+                    saveToBackend(bccrData, eurToUsd)
 
                 } else {
                     _uiState.value = _uiState.value.copy(
@@ -153,6 +162,52 @@ class ExchangeRateViewModel : ViewModel() {
             outputFormat.format(date ?: Date())
         } catch (e: Exception) {
             dateString
+        }
+    }
+
+    // Guardar en base de datos para cache
+    private suspend fun saveToBackend(bccrData: BCCRExchangeRate, eurToUsd: Double) {
+        try {
+            val apiService = RetrofitInstance.apiServiceExchangeRate
+
+
+            apiService.createExchangeRate(
+                CreateExchangeRateDto(
+                    fromCurrency = "USD",
+                    toCurrency = "CRC",
+                    rate = bccrData.compra
+                )
+            )
+
+
+            apiService.createExchangeRate(
+                CreateExchangeRateDto(
+                    fromCurrency = "USD",
+                    toCurrency = "CRC",
+                    rate = bccrData.venta
+                )
+            )
+
+
+            apiService.createExchangeRate(
+                CreateExchangeRateDto(
+                    fromCurrency = "EUR",
+                    toCurrency = "CRC",
+                    rate = bccrData.compra * eurToUsd
+                )
+            )
+
+
+            apiService.createExchangeRate(
+                CreateExchangeRateDto(
+                    fromCurrency = "EUR",
+                    toCurrency = "CRC",
+                    rate = bccrData.venta * eurToUsd
+                )
+            )
+
+        } catch (e: Exception) {
+            // Silencioso - no es crítico si falla el guardado
         }
     }
 }
