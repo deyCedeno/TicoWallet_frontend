@@ -19,8 +19,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-//    USERS
-
     @Multipart
     @POST("api/user/register")
     suspend fun addUser(@Part("Name") name: RequestBody,

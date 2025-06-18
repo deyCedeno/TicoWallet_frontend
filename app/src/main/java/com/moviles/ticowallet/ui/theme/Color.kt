@@ -12,6 +12,7 @@ val colorRed = Color(0xFFFF0000)
 val colorGreen1 = Color(0xFF00CC5C)
 val colorYellow = Color(0xFFD3D34A)
 val colorGreen2 = Color(0xFF39BF95)
+val colorLightGray = Color(0xFFF5F5F5)
 
 // Existing colors (keep these if you're using them)
 val Purple80 = Color(0xFFD0BCFF)

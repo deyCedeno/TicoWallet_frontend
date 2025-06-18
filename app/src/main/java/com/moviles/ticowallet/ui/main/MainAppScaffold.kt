@@ -37,6 +37,7 @@ import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
+import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,7 +197,9 @@ fun AppNavHost(
             )
         }
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
-        composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", paddingValues) }
+        composable("tipo_cambio") {
+            ExchangeRateScreen(paddingValues = PaddingValues())
+        }
         composable("ajustes") {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
