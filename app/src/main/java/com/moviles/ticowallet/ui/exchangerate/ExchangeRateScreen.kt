@@ -50,7 +50,7 @@ fun ExchangeRateScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
-            // Header con título y botón refresh
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,7 +87,7 @@ fun ExchangeRateScreen(
                 }
             }
 
-            // Loading state
+
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier
@@ -101,7 +101,7 @@ fun ExchangeRateScreen(
                     )
                 }
             } else {
-                // Sección Precio Venta
+
                 ExchangeRateSection(
                     title = "Precio Venta",
                     usdRate = uiState.usdVenta,
@@ -110,7 +110,7 @@ fun ExchangeRateScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Sección Precio Compra
+
                 ExchangeRateSection(
                     title = "Precio Compra",
                     usdRate = uiState.usdCompra,
@@ -142,7 +142,7 @@ fun ExchangeRateScreen(
                 }
             }
 
-            // Error message
+
             uiState.errorMessage?.let { error ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
@@ -196,7 +196,7 @@ fun ExchangeRateSection(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // Título de la sección
+
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -250,7 +250,6 @@ fun CurrencyConverter(
     }
 
     Column {
-        // Título del convertidor
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(
@@ -280,7 +279,6 @@ fun CurrencyConverter(
                 OutlinedTextField(
                     value = inputAmount,
                     onValueChange = { newValue ->
-                        // Solo permitir números y un punto decimal
                         if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
                             inputAmount = newValue
                         }
@@ -314,7 +312,6 @@ fun CurrencyConverter(
                 )
             }
 
-            // Icono de intercambio
             Icon(
                 imageVector = Icons.Default.SwapHoriz,
                 contentDescription = "Convertir",
@@ -322,7 +319,6 @@ fun CurrencyConverter(
                 modifier = Modifier.size(24.dp)
             )
 
-            // Output
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = toCurrency,
@@ -370,7 +366,6 @@ fun CurrencyConverter(
             }
         }
 
-        // Tasa de cambio
         Text(
             text = "Tasa: 1 $fromCurrency = ${String.format("%.6f", rate)} $toCurrency",
             style = MaterialTheme.typography.bodySmall,

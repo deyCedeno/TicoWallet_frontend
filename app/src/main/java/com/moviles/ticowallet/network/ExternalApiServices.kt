@@ -18,16 +18,13 @@ interface ExchangeRateApiService {
     suspend fun getExchangeRatesFromUSD(): Response<ExchangeRateApiResponse>
 }
 
-// network/ExternalRetrofitClient.kt
-object ExternalRetrofitClient {
 
-    // Cliente para BCCR (Costa Rica)
+object ExternalRetrofitClient {
     private val bccrRetrofit = Retrofit.Builder()
         .baseUrl("https://tipodecambio.paginasweb.cr/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    // Cliente para ExchangeRate-API (Euros)
     private val exchangeRateRetrofit = Retrofit.Builder()
         .baseUrl("https://api.exchangerate-api.com/")
         .addConverterFactory(GsonConverterFactory.create())

@@ -22,7 +22,7 @@ object RetrofitInstance {
     }
 
     val apiServiceExchangeRate: ApiServiceExchangeRate by lazy {
-        retrofit.create(ApiServiceExchangeRate::class.java)  // Usar la instancia retrofit (minúscula)
+        retrofit.create(ApiServiceExchangeRate::class.java)
     }
 }
 

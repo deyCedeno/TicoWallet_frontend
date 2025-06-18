@@ -16,11 +16,10 @@ data class ExchangeRateUiState(
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
 
-    // USD rates
     val usdCompra: Double = 0.0,
     val usdVenta: Double = 0.0,
 
-    // EUR rates
+
     val eurCompra: Double = 0.0,
     val eurVenta: Double = 0.0,
 
@@ -43,14 +42,14 @@ class ExchangeRateViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             try {
-                // Obtener USD del BCCR
+
                 val bccrResponse = bccrService.getCurrentExchangeRate()
 
                 if (bccrResponse.isSuccessful && bccrResponse.body() != null) {
                     val bccrData = bccrResponse.body()!!
 
-                    // Obtener EUR de ExchangeRate-API
-                    var eurToUsd = 0.85 // Fallback rate
+
+                    var eurToUsd = 0.85
                     try {
                         val eurResponse = exchangeRateService.getExchangeRatesFromUSD()
                         if (eurResponse.isSuccessful && eurResponse.body() != null) {
@@ -60,7 +59,7 @@ class ExchangeRateViewModel : ViewModel() {
                         // Usar tasa fallback para EUR
                     }
 
-                    // Calcular tasas EUR
+
                     val eurCompraRate = bccrData.compra * eurToUsd
                     val eurVentaRate = bccrData.venta * eurToUsd
 
@@ -95,14 +94,14 @@ class ExchangeRateViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isRefreshing = true)
 
             try {
-                // Obtener USD del BCCR
+
                 val bccrResponse = bccrService.getCurrentExchangeRate()
 
                 if (bccrResponse.isSuccessful && bccrResponse.body() != null) {
                     val bccrData = bccrResponse.body()!!
 
-                    // Obtener EUR de ExchangeRate-API
-                    var eurToUsd = 0.85 // Fallback rate
+
+                    var eurToUsd = 0.85
                     try {
                         val eurResponse = exchangeRateService.getExchangeRatesFromUSD()
                         if (eurResponse.isSuccessful && eurResponse.body() != null) {
@@ -112,7 +111,7 @@ class ExchangeRateViewModel : ViewModel() {
                         // Usar tasa fallback para EUR
                     }
 
-                    // Calcular tasas EUR
+
                     val eurCompraRate = bccrData.compra * eurToUsd
                     val eurVentaRate = bccrData.venta * eurToUsd
 

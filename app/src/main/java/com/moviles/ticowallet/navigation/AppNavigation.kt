@@ -9,7 +9,7 @@ import androidx.navigation.navArgument
 import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.goals.GoalsScreen
 
-// Define tus rutas
+
 object AppDestinations {
     const val GOALS_ROUTE = "goals"
     const val GOAL_DETAIL_ROUTE = "goal_detail"
@@ -37,7 +37,7 @@ fun AppNavigation(navController: NavHostController) {
             route = "${AppDestinations.GOAL_DETAIL_ROUTE}/{${AppDestinations.GOAL_ID_ARG}}",
             arguments = listOf(navArgument(AppDestinations.GOAL_ID_ARG) {
                 type = NavType.StringType
-                nullable = true // O false, dependiendo de si siempre esperas un ID
+                nullable = true
             })
         ) { backStackEntry ->
             val goalId = backStackEntry.arguments?.getString(AppDestinations.GOAL_ID_ARG)
