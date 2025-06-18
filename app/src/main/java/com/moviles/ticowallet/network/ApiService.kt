@@ -1,6 +1,9 @@
 package com.moviles.ticowallet.network
 
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
+import com.moviles.ticowallet.DAO.UpdateImageResponse
+import com.moviles.ticowallet.DAO.UpdateUserProfileDto
+import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
@@ -18,6 +21,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+
 interface ApiService {
     @Multipart
     @POST("api/user/register")
@@ -25,6 +29,13 @@ interface ApiService {
                          @Part("Email") email: RequestBody,
                          @Part("Password") password: RequestBody,
                          @Part("ConfirmPassword") confirmPassword: RequestBody): User
+
+    @PUT("api/user/update_profile")
+    suspend fun updateUserProfile(@Body updateDto: UpdateUserProfileDto): Response<UpdateUserProfileResponse>
+
+    @Multipart
+    @PUT("api/images/user/update_image")
+    suspend fun updateUserImage(@Part image: MultipartBody.Part): Response<UpdateImageResponse>
 
     @POST("/api/user/login")
     suspend fun signIn(@Body userDto: User) : Response<User>
