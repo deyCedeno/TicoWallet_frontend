@@ -1,5 +1,6 @@
 package com.moviles.ticowallet.ui.account
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,22 +35,39 @@ import androidx.navigation.NavController
 import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.account.AccountViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
     val accountState = remember { mutableStateOf<List<Account>?>(null) }
+    val showNoAccountsMessage = remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    val refreshAccounts: () -> Unit = {
+        showNoAccountsMessage.value = false
+        accountState.value = null
 
         viewModel.getAllAccounts(
-            onSuccess = { ac->
+            onSuccess = { ac ->
                 accountState.value = ac
             },
             onError = { error ->
                 println("Error al obtener las cuentas: $error")
+                accountState.value = emptyList()
             }
         )
+    }
+
+    LaunchedEffect(Unit) {
+        refreshAccounts()
+
+        launch {
+            delay(5000)
+            if (accountState.value.isNullOrEmpty()) {
+                showNoAccountsMessage.value = true
+            }
+        }
     }
 
     TicoWalletTheme {
@@ -73,10 +91,38 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    accountState.value?.forEach { account ->
-                        AccountItem(account = account)
-                    } ?: run {
-                        Text(text = "Cargando cuentas...", color = Color.Gray)
+                    when {
+                        accountState.value == null -> {
+                            if (!showNoAccountsMessage.value) {
+                                Text(text = "Cargando cuentas...", color = Color.White)
+                            } else {
+                                Text(text = "No hay cuentas.", color = Color.White)
+                            }
+                        }
+                        accountState.value!!.isEmpty() -> {
+                            Text(text = "No hay cuentas.", color = Color.White)
+                        }
+                        else -> {
+                            accountState.value!!.forEach { account ->
+                                AccountItem(
+                                    account = account,
+                                    onDeleteClick = { accountToDelete ->
+                                        accountToDelete.id?.let {
+                                            viewModel.deleteAccount(
+                                                it,
+                                                onSuccess = {
+                                                    println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
+                                                    refreshAccounts()
+                                                },
+                                                onError = { error ->
+                                                    println("Error al eliminar la cuenta: $error")
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -87,7 +133,7 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
 }
 
 @Composable
-fun AccountItem(account: Account) {
+fun AccountItem(account: Account, onDeleteClick: (Account) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -122,7 +168,7 @@ fun AccountItem(account: Account) {
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Eliminar",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp).clickable { onDeleteClick(account) }
                 )
             }
         }

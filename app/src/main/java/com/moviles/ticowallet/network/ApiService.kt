@@ -65,4 +65,7 @@ interface ApiService {
     @GET("api/account")
     suspend fun getAllAccounts(): List<Account>
 
+    @DELETE("api/account/{id}")
+    suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
+
 }
