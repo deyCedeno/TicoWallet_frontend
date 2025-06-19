@@ -19,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,6 +35,7 @@ import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
+import com.moviles.ticowallet.viewmodel.account.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -164,7 +164,10 @@ fun AppNavHost(
         startDestination = startDestination,
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
-        composable("inicio") { PlaceholderScreen("Inicio", PaddingValues()) }
+        composable("inicio") {
+            val viewModel: HomeViewModel = viewModel()
+            HomeScreen(viewModel)
+        }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
         composable("pagos_programados") { PlaceholderScreen("Pagos Programados", PaddingValues()) }
@@ -200,7 +203,7 @@ fun AppNavHost(
         composable("ajustes") {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
-                UserProfileScreen(viewModel, onNavigateBack ={}, onLogout = {
+                UserProfileScreen(viewModel, onLogout = {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                     if (context is ComponentActivity) {
                         context.finish()

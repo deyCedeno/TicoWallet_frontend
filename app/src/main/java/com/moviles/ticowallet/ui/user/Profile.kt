@@ -22,9 +22,8 @@ import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(viewModel: UserViewModel, onNavigateBack: () -> Unit = {}, onLogout: () -> Unit = {}) {
+fun UserProfileScreen(viewModel: UserViewModel, onLogout: () -> Unit = {}) {
     val userState = remember { mutableStateOf<User?>(null) }
 
     LaunchedEffect(Unit) {
@@ -40,16 +39,6 @@ fun UserProfileScreen(viewModel: UserViewModel, onNavigateBack: () -> Unit = {},
 
     TicoWalletTheme {
         Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Atrás") },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
-                        }
-                    }
-                )
-            },
             bottomBar = {
                 Button(
                     onClick = onLogout,
