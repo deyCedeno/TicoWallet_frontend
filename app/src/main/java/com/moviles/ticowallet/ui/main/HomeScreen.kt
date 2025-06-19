@@ -34,14 +34,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.moviles.ticowallet.models.HomePageResponse
-import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
-import com.moviles.ticowallet.viewmodel.account.HomeViewModel
+import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel) {
+fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
     val homeState = remember { mutableStateOf<HomePageResponse?>(null) }
 
     LaunchedEffect(Unit) {
@@ -125,7 +125,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* TODO: Lógica para mostrar todo */ },
+                        onClick = {
+                            navController.navigate("cuentas")
+                        },
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF388E8E),

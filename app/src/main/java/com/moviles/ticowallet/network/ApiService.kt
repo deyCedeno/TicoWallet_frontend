@@ -1,6 +1,7 @@
 package com.moviles.ticowallet.network
 
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
+import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
 import com.moviles.ticowallet.models.User
@@ -61,6 +62,7 @@ interface ApiService {
     @GET("api/statistics/home")
     suspend fun getAllHome(): HomePageResponse
 
-
+    @GET("api/account")
+    suspend fun getAllAccounts(): List<Account>
 
 }

@@ -27,6 +27,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
+import com.moviles.ticowallet.ui.account.AccountsScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
@@ -35,7 +36,8 @@ import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
-import com.moviles.ticowallet.viewmodel.account.HomeViewModel
+import com.moviles.ticowallet.viewmodel.account.AccountViewModel
+import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,8 +144,8 @@ fun MainAppScaffold(
                 AppNavHost(
                     navController = navController,
                     mainViewModel = mainViewModel,
-                    paddingValues = innerPadding,
-                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
+                    paddingValues = innerPadding
+//                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
                 )
             }
         }
@@ -154,19 +156,19 @@ fun MainAppScaffold(
 fun AppNavHost(
     navController: NavHostController,
     mainViewModel: MainViewModel,
-    paddingValues: PaddingValues,
-    startDestination: String
+    paddingValues: PaddingValues
+//    startDestination: String
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = "inicio",
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
         composable("inicio") {
             val viewModel: HomeViewModel = viewModel()
-            HomeScreen(viewModel)
+            HomeScreen(navController = navController, viewModel)
         }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
@@ -211,6 +213,12 @@ fun AppNavHost(
                 })
             }
         }
+
+        composable("cuentas") {
+            val accountViewModel: AccountViewModel = viewModel()
+            AccountsScreen(navController = navController, viewModel = accountViewModel)
+        }
+
 
     }
 }
