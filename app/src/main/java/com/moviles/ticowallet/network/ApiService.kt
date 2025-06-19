@@ -2,6 +2,7 @@ package com.moviles.ticowallet.network
 
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
 import com.moviles.ticowallet.models.Goal
+import com.moviles.ticowallet.models.HomePageResponse
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -56,7 +57,9 @@ interface ApiService {
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
 
-
+//  Account
+    @GET("api/statistics/home")
+    suspend fun getAllHome(): HomePageResponse
 
 
 

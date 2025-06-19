@@ -25,18 +25,35 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moviles.ticowallet.models.HomePageResponse
+import com.moviles.ticowallet.models.User
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.account.HomeViewModel
 
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
+    val homeState = remember { mutableStateOf<HomePageResponse?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllHome(
+            onSuccess = { home ->
+                homeState.value = home
+            },
+            onError = { error ->
+                println("Error al obtener los datos del inicio: $error")
+            }
+        )
+    }
 
     TicoWalletTheme {
         val scrollState = rememberScrollState()
@@ -98,21 +115,13 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        AccountCard(
-                            type = "Efectivo",
-                            amount = "CRC 10.000",
-                            backgroundColor = Color(0xFF388E8E)
-                        )
-                        AccountCard(
-                            type = "BNCR",
-                            amount = "CRC 80.000",
-                            backgroundColor = Color(0xFF388E8E)
-                        )
-                        AccountCard(
-                            type = "BCR",
-                            amount = "USD 100",
-                            backgroundColor = Color(0xFF388E8E)
-                        )
+                        homeState.value?.accounts?.forEach { account ->
+                            AccountCard(
+                                type = account.name,
+                                amount = "${account.currency} ${String.format("%,.0f", account.balance)}",
+                                backgroundColor = Color(0xFF339B9B)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -155,22 +164,15 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-
-                        RecordsCard(
-                            description = "Test 2",
-                            amount = "-3500",
-                            currency = "USD",
-                            account = "asd",
-                            date = "Ayer"
-                        )
-                        RecordsCard(
-                            description = "Test 1",
-                            amount = "5000",
-                            currency = "USD",
-                            account = "asd",
-                            date = "Ayer"
-                        )
-
+                        homeState.value?.movements?.forEach { movements ->
+                            RecordsCard(
+                                description = movements.description,
+                                amount = movements.amount,
+                                currency = movements.currency,
+                                account = movements.accountName,
+                                date = movements.date
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -212,16 +214,12 @@ fun AccountCard(type: String, amount: String, backgroundColor: Color) {
 }
 
 @Composable
-fun RecordsCard(description: String, amount: String, currency: String, account: String, date: String) {
-    val dAmount: Double? = amount.toDoubleOrNull()
-    if(dAmount == null)
-        return;
-
-    val amountColor = if (dAmount < 0) Color(0xFFE53935) else Color(0xFF4CAF50)
-    val formattedAmount = if (dAmount < 0) {
-        "-" + currency + " ${String.format("%,.0f", -dAmount)}"
+fun RecordsCard(description: String, amount: Double, currency: String, account: String, date: String) {
+    val amountColor = if (amount < 0) Color(0xFFE53935) else Color(0xFF4CAF50)
+    val formattedAmount = if (amount < 0) {
+        "-" + currency + " ${String.format("%,.0f", -amount)}"
     } else {
-        currency + " ${String.format("%,.0f", dAmount)}"
+        currency + " ${String.format("%,.0f", amount)}"
     }
 
     Column(
