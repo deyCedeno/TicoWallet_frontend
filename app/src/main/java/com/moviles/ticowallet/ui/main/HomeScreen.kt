@@ -122,6 +122,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                                 backgroundColor = Color(0xFF339B9B)
                             )
                         }
+                        if(homeState.value?.accounts.isNullOrEmpty()){
+                            Text(text = "No hay cuentas registradas.", color = Color.White)
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -134,7 +137,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                             contentColor = Color.White
                         )
                     ) {
-                        Text(text = "Mostrar todo", color = Color.White)
+                        Text(text = "Mostrar más", color = Color.White)
                     }
                 }
             }
@@ -174,6 +177,15 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                                 account = movements.accountName,
                                 date = movements.date
                             )
+                        }
+                        if(homeState.value?.movements.isNullOrEmpty()){
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(text = "No hay movimientos.", color = Color.White)
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))

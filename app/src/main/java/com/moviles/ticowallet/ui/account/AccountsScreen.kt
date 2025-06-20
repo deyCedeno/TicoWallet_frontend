@@ -1,5 +1,6 @@
 package com.moviles.ticowallet.ui.account
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
     val accountState = remember { mutableStateOf<List<Account>?>(null) }
     val showNoAccountsMessage = remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     val refreshAccounts: () -> Unit = {
         showNoAccountsMessage.value = false
@@ -113,9 +116,11 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
                                                 onSuccess = {
                                                     println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
                                                     refreshAccounts()
+                                                    Toast.makeText(context, "Cuenta ${accountToDelete.name} eliminada exitosamente.", Toast.LENGTH_SHORT).show()
                                                 },
                                                 onError = { error ->
                                                     println("Error al eliminar la cuenta: $error")
+                                                    Toast.makeText(context, "No se pudo eliminar la cuenta.", Toast.LENGTH_SHORT).show()
                                                 }
                                             )
                                         }
