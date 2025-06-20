@@ -66,7 +66,7 @@ fun CreateAccountScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     singleLine = true,
-                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1A2639),
                         unfocusedContainerColor = Color(0xFF1A2639),
                         focusedBorderColor = colorTeal,
@@ -91,7 +91,7 @@ fun CreateAccountScreen(navController: NavController) {
                     shape = RoundedCornerShape(8.dp),
                     singleLine = true,
                     readOnly = true, // Make it read-only if it's a dropdown or pre-selected
-                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1A2639),
                         unfocusedContainerColor = Color(0xFF1A2639),
                         focusedBorderColor = colorTeal,
@@ -141,7 +141,7 @@ fun CreateAccountScreen(navController: NavController) {
                     shape = RoundedCornerShape(8.dp),
                     singleLine = true,
                     readOnly = true, // Make it read-only if it's a dropdown or pre-selected
-                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1A2639),
                         unfocusedContainerColor = Color(0xFF1A2639),
                         focusedBorderColor = colorTeal,
