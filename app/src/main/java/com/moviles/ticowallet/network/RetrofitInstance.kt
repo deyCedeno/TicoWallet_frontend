@@ -11,12 +11,22 @@ object RetrofitInstance {
         .addInterceptor(AuthInterceptor())
         .build()
 
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(Constants.API_BASE_URL)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
     val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(Constants.API_BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
+        retrofit.create(ApiService::class.java)
+    }
+
+    val apiServiceExchangeRate: ApiServiceExchangeRate by lazy {
+        retrofit.create(ApiServiceExchangeRate::class.java)
+    }
+
+    val apiServiceGoals: ApiServiceGoals by lazy {
+        retrofit.create(ApiServiceGoals::class.java)
     }
 }
+
