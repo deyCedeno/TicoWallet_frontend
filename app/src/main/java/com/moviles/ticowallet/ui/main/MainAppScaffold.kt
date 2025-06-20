@@ -140,16 +140,18 @@ fun MainAppScaffold(
             floatingActionButton = {
                 // Only show FAB for specific main screens
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-                if (currentRoute == "objetivos") {
-                    FloatingActionButton(
-                        onClick = {
-                            navController.navigate("create_goal")
-                        },
-                        containerColor = colorTeal,
-                        contentColor = colorWhite,
-                        shape = CircleShape
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
+                when (currentRoute) {
+                    "objetivos" -> {
+                        FloatingActionButton(
+                            onClick = {
+                                navController.navigate("crear_objetivo_screen")
+                            },
+                            containerColor = colorTeal,
+                            contentColor = colorWhite,
+                            shape = CircleShape
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
+                        }
                     }
                     "pagos_programados" -> {
                         FloatingActionButton(

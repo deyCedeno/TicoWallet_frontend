@@ -95,7 +95,7 @@ fun ScheduledPaymentDetailScreen(
             frequency = payment.frequency
 
             // Find and set selected account
-            selectedAccount = userAccounts.find { it.id == payment.accountId.id }
+            selectedAccount = userAccounts.find { it.id != null && it.id == payment.accountId.id }
 
             // Find and set selected category
             selectedCategory = categories.find { it.id == payment.categoryId.id }
@@ -338,7 +338,7 @@ fun ScheduledPaymentDetailScreen(
                                 val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
                                 val scheduledPaymentDto = CreateScheduledPaymentDto(
                                     paymentName = paymentName.trim(),
-                                    accountId = selectedAccount!!.id,
+                                    accountId = selectedAccount!!.id ?: 0,
                                     categoryId = selectedCategory!!.id,
                                     amount = amount.toDouble(),
                                     paymentMethod = paymentMethod,

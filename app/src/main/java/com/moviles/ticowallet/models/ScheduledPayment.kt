@@ -47,7 +47,7 @@ data class CategoryInfo(
     @SerializedName("name")
     val name: String = ""
 )
-
+/*
 // Account.kt - Para dropdowns
 data class Account(
     @SerializedName("id")
@@ -56,7 +56,7 @@ data class Account(
     @SerializedName("name")
     val name: String
 )
-
+*/
 // CreateScheduledPaymentDto.kt - for POST/PUT
 data class CreateScheduledPaymentDto(
     @SerializedName("paymentName")

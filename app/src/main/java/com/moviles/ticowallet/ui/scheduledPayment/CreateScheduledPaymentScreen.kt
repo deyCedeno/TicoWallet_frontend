@@ -310,7 +310,7 @@ fun CreateScheduledPaymentScreen(
                             val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
                             val scheduledPaymentDto = CreateScheduledPaymentDto(
                                 paymentName = paymentName.trim(),
-                                accountId = selectedAccount!!.id,
+                                accountId = selectedAccount!!.id ?: 0,
                                 categoryId = selectedCategory!!.id,
                                 amount = amount.toDouble(),
                                 paymentMethod = paymentMethod,
