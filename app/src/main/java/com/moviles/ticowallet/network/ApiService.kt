@@ -51,4 +51,13 @@ interface ApiService {
     @GET("/api/user")
     suspend fun getUser() : User
 
+    //  Account
+    @GET("api/statistics/home")
+    suspend fun getAllHome(): HomePageResponse
+
+    @GET("api/account")
+    suspend fun getAllAccounts(): List<Account>
+
+    @DELETE("api/account/{id}")
+    suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
 }
