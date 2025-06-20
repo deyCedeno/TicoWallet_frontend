@@ -27,6 +27,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
 import com.moviles.ticowallet.ui.account.AccountsScreen
+import com.moviles.ticowallet.ui.account.CreateAccountScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
@@ -234,6 +235,10 @@ fun AppNavHost(
         composable("cuentas") {
             val accountViewModel: AccountViewModel = viewModel()
             AccountsScreen(navController = navController, viewModel = accountViewModel)
+        }
+
+        composable("crear_cuenta") {
+            CreateAccountScreen(navController = navController)
         }
 
 

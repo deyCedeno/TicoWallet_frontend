@@ -19,11 +19,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -83,64 +85,79 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
     }
 
     TicoWalletTheme {
-        val scrollState = rememberScrollState()
-        if ((accountState.value == null && showNoAccountsMessage.value) || accountState.value?.isEmpty() == true) {
-            AccountNotFound()
-        } else {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 8.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d))
-            ) {
-                Column(
+        Box(modifier = Modifier.fillMaxSize()) { // Use Box to allow placing elements at specific alignments
+            val scrollState = rememberScrollState()
+            if ((accountState.value == null && showNoAccountsMessage.value) || accountState.value?.isEmpty() == true) {
+                AccountNotFound()
+            } else {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d))
                 ) {
-
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        accountState.value?.forEach { account ->
-                            AccountItem(
-                                account = account,
-                                onDeleteClick = { accountToDelete ->
-                                    accountToDelete.id?.let {
-                                        viewModel.deleteAccount(
-                                            it,
-                                            onSuccess = {
-                                                println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
-                                                refreshAccounts()
-                                                Toast.makeText(
-                                                    context,
-                                                    "Cuenta ${accountToDelete.name} eliminada exitosamente.",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            },
-                                            onError = { error ->
-                                                println("Error al eliminar la cuenta: $error")
-                                                Toast.makeText(
-                                                    context,
-                                                    "No se pudo eliminar la cuenta.",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        )
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            accountState.value?.forEach { account ->
+                                AccountItem(
+                                    account = account,
+                                    onDeleteClick = { accountToDelete ->
+                                        accountToDelete.id?.let {
+                                            viewModel.deleteAccount(
+                                                it,
+                                                onSuccess = {
+                                                    println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
+                                                    refreshAccounts()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Cuenta ${accountToDelete.name} eliminada exitosamente.",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                },
+                                                onError = { error ->
+                                                    println("Error al eliminar la cuenta: $error")
+                                                    Toast.makeText(
+                                                        context,
+                                                        "No se pudo eliminar la cuenta.",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            FloatingActionButton(
+                onClick = { navController.navigate("crear_cuenta") },
+                containerColor = colorTeal,
+                contentColor = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Agregar cuenta"
+                )
+            }
         }
     }
-
 }
 
 @Composable
