@@ -38,7 +38,6 @@ import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import java.io.File
 import java.io.FileOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
     viewModel: UserViewModel,

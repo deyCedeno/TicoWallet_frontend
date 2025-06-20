@@ -18,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +26,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
+import com.moviles.ticowallet.ui.account.AccountsScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
@@ -35,6 +35,8 @@ import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
+import com.moviles.ticowallet.viewmodel.account.AccountViewModel
+import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
@@ -143,8 +145,8 @@ fun MainAppScaffold(
                 AppNavHost(
                     navController = navController,
                     mainViewModel = mainViewModel,
-                    paddingValues = innerPadding,
-                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
+                    paddingValues = innerPadding
+//                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
                 )
             }
         }
@@ -155,17 +157,20 @@ fun MainAppScaffold(
 fun AppNavHost(
     navController: NavHostController,
     mainViewModel: MainViewModel,
-    paddingValues: PaddingValues,
-    startDestination: String
+    paddingValues: PaddingValues
+//    startDestination: String
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = "inicio",
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
-        composable("inicio") { PlaceholderScreen("Inicio", PaddingValues()) }
+        composable("inicio") {
+            val viewModel: HomeViewModel = viewModel()
+            HomeScreen(navController = navController, viewModel)
+        }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
         composable("pagos_programados") { PlaceholderScreen("Pagos Programados", PaddingValues()) }
@@ -217,7 +222,7 @@ fun AppNavHost(
         composable("ajustes") {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
-                UserProfileScreen(viewModel, onNavigateBack ={}, onLogout = {
+                UserProfileScreen(viewModel, onLogout = {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                     if (context is ComponentActivity) {
                         context.finish()
@@ -225,6 +230,13 @@ fun AppNavHost(
                 })
             }
         }
+
+        composable("cuentas") {
+            val accountViewModel: AccountViewModel = viewModel()
+            AccountsScreen(navController = navController, viewModel = accountViewModel)
+        }
+
+
     }
 }
 

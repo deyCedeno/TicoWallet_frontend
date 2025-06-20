@@ -50,7 +50,6 @@ class LoginActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
     val context = LocalContext.current
