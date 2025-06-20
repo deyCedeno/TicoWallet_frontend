@@ -1,4 +1,5 @@
 package com.moviles.ticowallet.ui.main
+
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,7 +42,14 @@ import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
+import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentListScreen
+import com.moviles.ticowallet.ui.scheduledPayment.CreateScheduledPaymentScreen
+import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
 
+/**
+ * Main scaffold with centralized navigation drawer, top bar and floating action button
+ * Manages the overall app structure and navigation
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScaffold(
@@ -52,6 +61,7 @@ fun MainAppScaffold(
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
 
+    // Update selected menu item based on current route
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
             val route = backStackEntry.destination.route
@@ -87,8 +97,15 @@ fun MainAppScaffold(
     ) {
         Scaffold(
             topBar = {
+                val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
                 TopAppBar(
                     title = {
+                        val title = when {
+                            currentRoute == "create_scheduled_payment" -> "Nuevo pago programado"
+                            currentRoute?.startsWith("scheduled_payment_detail") == true -> "Editar pago programado"
+                            else -> uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio"
+                        }
                         Text(
                             text = uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio",
                             color = colorWhite
@@ -121,17 +138,32 @@ fun MainAppScaffold(
                 )
             },
             floatingActionButton = {
+                // Only show FAB for specific main screens
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-                if (currentRoute == "objetivos") {
-                    FloatingActionButton(
-                        onClick = {
-                            navController.navigate("create_goal")
-                        },
-                        containerColor = colorTeal,
-                        contentColor = colorWhite,
-                        shape = CircleShape
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
+                when (currentRoute) {
+                    "objetivos" -> {
+                        FloatingActionButton(
+                            onClick = {
+                                navController.navigate("crear_objetivo_screen")
+                            },
+                            containerColor = colorTeal,
+                            contentColor = colorWhite,
+                            shape = CircleShape
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
+                        }
+                    }
+                    "pagos_programados" -> {
+                        FloatingActionButton(
+                            onClick = {
+                                navController.navigate("create_scheduled_payment")
+                            },
+                            containerColor = colorTeal,
+                            contentColor = colorWhite,
+                            shape = CircleShape
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar pago programado")
+                        }
                     }
                 }
             },
@@ -153,6 +185,10 @@ fun MainAppScaffold(
     }
 }
 
+/**
+ * Navigation host containing all app routes
+ * Each screen handles its own content without duplicate UI elements
+ */
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -162,6 +198,7 @@ fun AppNavHost(
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
     NavHost(
         navController = navController,
         startDestination = "inicio",
@@ -173,10 +210,36 @@ fun AppNavHost(
         }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
-        composable("pagos_programados") { PlaceholderScreen("Pagos Programados", PaddingValues()) }
+
+        // Scheduled Payments - Complete navigation flow
+        composable("pagos_programados") {
+            ScheduledPaymentListScreen(
+                navController = navController,
+                onMenuClick = { /* Handled by main scaffold */ }
+            )
+        }
+
+        composable("create_scheduled_payment") {
+            CreateScheduledPaymentScreen(
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "scheduled_payment_detail/{paymentId}",
+            arguments = listOf(navArgument("paymentId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val paymentId = backStackEntry.arguments?.getInt("paymentId") ?: 0
+            ScheduledPaymentDetailScreen(
+                navController = navController,
+                paymentId = paymentId
+            )
+        }
+
+        // Other sections
         composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
 
-        // ===== RUTAS DE OBJETIVOS =====
+        // Goals - Existing navigation
         composable("objetivos") {
             val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             GoalsScreen(
@@ -213,8 +276,8 @@ fun AppNavHost(
                 )
             }
         }
-        // ===== FIN RUTAS DE OBJETIVOS =====
 
+        // Other main screens
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
         composable("tipo_cambio") {
             ExchangeRateScreen(paddingValues = PaddingValues())

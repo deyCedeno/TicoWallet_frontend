@@ -5,8 +5,11 @@ import com.moviles.ticowallet.DAO.UpdateImageResponse
 import com.moviles.ticowallet.DAO.UpdateUserProfileDto
 import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
 import com.moviles.ticowallet.models.Account
+import com.moviles.ticowallet.models.Category
+import com.moviles.ticowallet.models.CreateScheduledPaymentDto
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
+import com.moviles.ticowallet.models.ScheduledPayment
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -22,7 +25,6 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
-
 
 interface ApiService {
     @Multipart
@@ -51,6 +53,19 @@ interface ApiService {
     @GET("/api/user")
     suspend fun getUser() : User
 
+    //    GOAL
+    @GET("api/goal/get_all")
+    suspend fun getGoals(): List<Goal>
+
+    @GET("api/goal/{id}")
+    suspend fun getGoalById(@Path("id") id: String): Goal
+
+    @PUT("api/goal/{id}")
+    suspend fun updateGoal(@Path("id") id: String, @Body goal: Goal): Goal
+
+    @DELETE("api/goal/{id}")
+    suspend fun deleteGoal(@Path("id") id: String): Response<Void>
+
     //  Account
     @GET("api/statistics/home")
     suspend fun getAllHome(): HomePageResponse
@@ -60,4 +75,37 @@ interface ApiService {
 
     @DELETE("api/account/{id}")
     suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
+
+
+    @POST("api/goal")
+    suspend fun createGoal(@Body goal: Goal): Goal
+
+    // SCHEDULED PAYMENT ENDPOINTS
+
+    @GET("api/scheduled-payment")
+    suspend fun getScheduledPayments(): List<ScheduledPayment>
+
+    @GET("api/scheduled-payment/{id}")
+    suspend fun getScheduledPaymentById(@Path("id") id: Int): ScheduledPayment
+
+    @GET("api/scheduled-payment/accounts")
+    suspend fun getUserAccounts(): List<Account>
+
+    @GET("api/scheduled-payment/categories")
+    suspend fun getCategories(): List<Category>
+
+    @POST("api/scheduled-payment")
+    suspend fun createScheduledPayment(@Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @PUT("api/scheduled-payment/{id}")
+    suspend fun updateScheduledPayment(@Path("id") id: Int, @Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @DELETE("api/scheduled-payment/{id}")
+    suspend fun deleteScheduledPayment(@Path("id") id: Int): Response<ApiResponse>
 }
+
+// Generic API response for success/error messages
+data class ApiResponse(
+    val message: String? = null,
+    val error: String? = null
+)
