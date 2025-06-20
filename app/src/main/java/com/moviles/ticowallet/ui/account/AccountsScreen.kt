@@ -1,8 +1,10 @@
 package com.moviles.ticowallet.ui.account
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,11 +18,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,11 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
+import com.moviles.ticowallet.ui.theme.colorDarkBlue1
+import com.moviles.ticowallet.ui.theme.colorTeal
+import com.moviles.ticowallet.ui.theme.colorWhite
 import com.moviles.ticowallet.viewmodel.account.AccountViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -75,64 +84,61 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
 
     TicoWalletTheme {
         val scrollState = rememberScrollState()
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d))
-        ) {
-            Column(
+        if ((accountState.value == null && showNoAccountsMessage.value) || accountState.value?.isEmpty() == true) {
+            AccountNotFound()
+        } else {
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d))
             ) {
-
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    when {
-                        accountState.value == null -> {
-                            if (!showNoAccountsMessage.value) {
-                                Text(text = "Cargando cuentas...", color = Color.White)
-                            } else {
-                                Text(text = "No hay cuentas.", color = Color.White)
-                            }
-                        }
-                        accountState.value!!.isEmpty() -> {
-                            Text(text = "No hay cuentas.", color = Color.White)
-                        }
-                        else -> {
-                            accountState.value!!.forEach { account ->
-                                AccountItem(
-                                    account = account,
-                                    onDeleteClick = { accountToDelete ->
-                                        accountToDelete.id?.let {
-                                            viewModel.deleteAccount(
-                                                it,
-                                                onSuccess = {
-                                                    println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
-                                                    refreshAccounts()
-                                                    Toast.makeText(context, "Cuenta ${accountToDelete.name} eliminada exitosamente.", Toast.LENGTH_SHORT).show()
-                                                },
-                                                onError = { error ->
-                                                    println("Error al eliminar la cuenta: $error")
-                                                    Toast.makeText(context, "No se pudo eliminar la cuenta.", Toast.LENGTH_SHORT).show()
-                                                }
-                                            )
-                                        }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        accountState.value?.forEach { account ->
+                            AccountItem(
+                                account = account,
+                                onDeleteClick = { accountToDelete ->
+                                    accountToDelete.id?.let {
+                                        viewModel.deleteAccount(
+                                            it,
+                                            onSuccess = {
+                                                println("Cuenta eliminada exitosamente: ${accountToDelete.name}")
+                                                refreshAccounts()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Cuenta ${accountToDelete.name} eliminada exitosamente.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            },
+                                            onError = { error ->
+                                                println("Error al eliminar la cuenta: $error")
+                                                Toast.makeText(
+                                                    context,
+                                                    "No se pudo eliminar la cuenta.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
                     }
                 }
             }
         }
-
     }
 
 }
@@ -176,6 +182,42 @@ fun AccountItem(account: Account, onDeleteClick: (Account) -> Unit) {
                     modifier = Modifier.size(20.dp).clickable { onDeleteClick(account) }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun AccountNotFound(modifier: Modifier = Modifier){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colorDarkBlue1),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AccountBalance,
+                contentDescription = null,
+                tint = colorWhite.copy(alpha = 0.5f),
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No hay cuentas.",
+                color = colorWhite.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "¡Crea tu primer cuenta!",
+                color = colorTeal,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
