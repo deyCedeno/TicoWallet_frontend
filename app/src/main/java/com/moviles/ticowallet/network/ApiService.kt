@@ -1,8 +1,7 @@
 package com.moviles.ticowallet.network
 
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
-import com.moviles.ticowallet.models.Goal
-import com.moviles.ticowallet.models.User
+import com.moviles.ticowallet.models.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -53,11 +52,36 @@ interface ApiService {
     @DELETE("api/goal/{id}")
     suspend fun deleteGoal(@Path("id") id: String): Response<Void>
 
+
+    // SCHEDULED PAYMENT ENDPOINTS
+
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
 
+    @GET("api/scheduled-payment")
+    suspend fun getScheduledPayments(): List<ScheduledPayment>
 
+    @GET("api/scheduled-payment/{id}")
+    suspend fun getScheduledPaymentById(@Path("id") id: Int): ScheduledPayment
 
+    @GET("api/scheduled-payment/accounts")
+    suspend fun getUserAccounts(): List<Account>
 
+    @GET("api/scheduled-payment/categories")
+    suspend fun getCategories(): List<Category>
 
+    @POST("api/scheduled-payment")
+    suspend fun createScheduledPayment(@Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @PUT("api/scheduled-payment/{id}")
+    suspend fun updateScheduledPayment(@Path("id") id: Int, @Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @DELETE("api/scheduled-payment/{id}")
+    suspend fun deleteScheduledPayment(@Path("id") id: Int): Response<ApiResponse>
 }
+
+// Generic API response for success/error messages
+data class ApiResponse(
+    val message: String? = null,
+    val error: String? = null
+)
