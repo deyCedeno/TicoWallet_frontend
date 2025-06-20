@@ -22,8 +22,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.moviles.ticowallet.DAO.UpdateUserProfileDto
-import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
-import com.moviles.ticowallet.DAO.UpdateImageResponse
+
 
 data class UserUiState(
     val isLoading: Boolean = false,
@@ -34,15 +33,130 @@ data class UserUiState(
     val successMessage: String? = null
 )
 
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val isRegistering: Boolean = false,
+    val isSendingCode: Boolean = false,
+    val isResettingPassword: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null,
+    val validationErrors: Map<String, String> = emptyMap()
+)
 
-
-class UserViewModel(application: Application) : AndroidViewModel(application){
+class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
-    fun addUser(user: User){
+    private val _authState = MutableStateFlow(AuthUiState())
+    val authState: StateFlow<AuthUiState> = _authState.asStateFlow()
+
+
+    private fun validateRegistration(user: User): Map<String, String> {
+        val errors = mutableMapOf<String, String>()
+
+        if (user.name.isBlank()) {
+            errors["name"] = "El nombre es requerido"
+        } else if (user.name.length < 2) {
+            errors["name"] = "El nombre debe tener al menos 2 caracteres"
+        }
+
+        if (user.email.isBlank()) {
+            errors["email"] = "El email es requerido"
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
+            errors["email"] = "Formato de email inválido"
+        }
+
+        if (user.password.isNullOrBlank()) {
+            errors["password"] = "La contraseña es requerida"
+        } else {
+            val password = user.password!!
+            when {
+                password.length < 6 ->
+                    errors["password"] = "La contraseña debe tener al menos 6 caracteres"
+                password.length > 50 ->
+                    errors["password"] = "La contraseña es demasiado larga (máximo 50 caracteres)"
+                !password.any { it.isLetterOrDigit() } ->
+                    errors["password"] = "La contraseña debe contener al menos una letra o número"
+            }
+        }
+
+        if (user.confirmPassword.isNullOrBlank()) {
+            errors["confirmPassword"] = "Confirmar contraseña es requerido"
+        } else if (user.password != user.confirmPassword) {
+            errors["confirmPassword"] = "Las contraseñas no coinciden"
+        }
+
+        return errors
+    }
+
+
+    private fun validateLogin(user: User): Map<String, String> {
+        val errors = mutableMapOf<String, String>()
+
+        if (user.email.isBlank()) {
+            errors["email"] = "El email es requerido"
+        }
+
+        if (user.password.isNullOrBlank()) {
+            errors["password"] = "La contraseña es requerida"
+        }
+
+        return errors
+    }
+
+
+    private fun validateResetPassword(user: User): Map<String, String> {
+        val errors = mutableMapOf<String, String>()
+
+        if (user.code.isNullOrBlank()) {
+            errors["code"] = "El código de verificación es requerido"
+        } else if (user.code!!.length < 4) {
+            errors["code"] = "El código debe tener al menos 4 dígitos"
+        }
+
+        if (user.password.isNullOrBlank()) {
+            errors["password"] = "La nueva contraseña es requerida"
+        } else {
+            val password = user.password!!
+            when {
+                password.length < 6 ->
+                    errors["password"] = "La contraseña debe tener al menos 6 caracteres"
+                password.length > 50 ->
+                    errors["password"] = "La contraseña es demasiado larga (máximo 50 caracteres)"
+                !password.any { it.isLetterOrDigit() } ->
+                    errors["password"] = "La contraseña debe contener al menos una letra o número"
+            }
+        }
+
+        if (user.confirmPassword.isNullOrBlank()) {
+            errors["confirmPassword"] = "Confirmar nueva contraseña es requerido"
+        } else if (user.password != user.confirmPassword) {
+            errors["confirmPassword"] = "Las contraseñas no coinciden"
+        }
+
+        return errors
+    }
+
+
+    fun addUser(user: User, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
+
+            val validationErrors = validateRegistration(user)
+            if (validationErrors.isNotEmpty()) {
+                _authState.value = _authState.value.copy(
+                    validationErrors = validationErrors,
+                    errorMessage = "Por favor corrige los errores"
+                )
+                return@launch
+            }
+
+            _authState.value = _authState.value.copy(
+                isRegistering = true,
+                errorMessage = null,
+                validationErrors = emptyMap()
+            )
+
             try {
                 Log.i("ViewModelInfo", "User: ${user}")
                 val context = getApplication<Application>().applicationContext
@@ -54,83 +168,295 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
                     requestParts[2] as RequestBody,
                     requestParts[3] as RequestBody
                 )
-                Log.i("ViewModelInfo", "Response: ${response}")
+
+                _authState.value = _authState.value.copy(
+                    isRegistering = false,
+                    successMessage = "Cuenta creada exitosamente. ¡Ya puedes iniciar sesión!"
+                )
+                onSuccess()
+                Log.i("ViewModelInfo", "Registration successful: ${response}")
+
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
-                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+                Log.e("ViewModelError", "HTTP Error: ${e.code()}, Response Body: $errorBody")
+
+
+                val errorMsg = try {
+                    when {
+                        errorBody?.contains("email", ignoreCase = true) == true &&
+                                errorBody.contains("already", ignoreCase = true) -> "Este email ya está registrado"
+
+                        errorBody?.contains("password", ignoreCase = true) == true ->
+                            "La contraseña no cumple con los requisitos"
+
+                        errorBody?.contains("validation", ignoreCase = true) == true ->
+                            "Por favor verifica los datos ingresados"
+
+                        e.code() == 400 -> "Datos inválidos. Verifica la información"
+                        e.code() == 422 -> "Error de validación en los datos"
+                        e.code() == 409 -> "Este email ya está registrado"
+                        else -> "Error al crear cuenta"
+                    }
+                } catch (ex: Exception) {
+                    "Error al crear cuenta"
+                }
+
+                _authState.value = _authState.value.copy(
+                    isRegistering = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+
             } catch (e: Exception) {
+                val errorMsg = "Error de conexión. Verifica tu internet"
+                _authState.value = _authState.value.copy(
+                    isRegistering = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
                 Log.e("ViewModelError", "Error: ${e.message}", e)
             }
         }
     }
 
-    fun signIn(user: User, onSuccess: (User) -> Unit, onError: (String) -> Unit) {
+
+    fun signIn(user: User, onSuccess: (User) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
+
+            val validationErrors = validateLogin(user)
+            if (validationErrors.isNotEmpty()) {
+                _authState.value = _authState.value.copy(
+                    validationErrors = validationErrors,
+                    errorMessage = "Por favor completa todos los campos"
+                )
+                return@launch
+            }
+
+            _authState.value = _authState.value.copy(
+                isLoading = true,
+                errorMessage = null,
+                validationErrors = emptyMap()
+            )
+
             try {
                 Log.i("ViewModelInfo", "User: ${user}")
-
                 val response = RetrofitInstance.api.signIn(user)
+
                 val token = response.headers()["authorization"]?.removePrefix("Bearer ")?.trim()
                 if (!token.isNullOrEmpty()) {
                     Constants.AUTH_TOKEN = token
                     Log.i("ViewModelInfo", "Token saved: $token")
                 }
 
-                Log.i("ViewModelInfo", "Response: ${response}")
                 val userBody = response.body()
                 if (userBody != null) {
+                    _authState.value = _authState.value.copy(
+                        isLoading = false,
+                        successMessage = "¡Bienvenido ${userBody.name}!"
+                    )
                     onSuccess(userBody)
                 } else {
+                    _authState.value = _authState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Respuesta vacía del servidor"
+                    )
                     onError("Respuesta vacía del servidor")
                 }
+
             } catch (e: HttpException) {
-                val errorBody = e.response()?.errorBody()?.string()
-                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
-                onError("Credenciales inválidas")
+                val errorMsg = when (e.code()) {
+                    401 -> "Email o contraseña incorrectos"
+                    404 -> "Usuario no encontrado"
+                    422 -> "Datos inválidos"
+                    else -> "Error al iniciar sesión"
+                }
+
+                _authState.value = _authState.value.copy(
+                    isLoading = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Code: ${e.code()}")
+
             } catch (e: Exception) {
+                val errorMsg = "Error de conexión. Verifica tu internet"
+                _authState.value = _authState.value.copy(
+                    isLoading = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
                 Log.e("ViewModelError", "Error: ${e.message}", e)
-                onError("Error inesperado")
             }
         }
     }
 
-    fun sendCode(user: User) {
+
+    fun sendCode(user: User, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
+            if (user.email.isBlank()) {
+                _authState.value = _authState.value.copy(
+                    errorMessage = "El email es requerido",
+                    validationErrors = mapOf("email" to "El email es requerido")
+                )
+                return@launch
+            }
+
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(user.email).matches()) {
+                _authState.value = _authState.value.copy(
+                    errorMessage = "Email inválido",
+                    validationErrors = mapOf("email" to "Email inválido")
+                )
+                return@launch
+            }
+
+            _authState.value = _authState.value.copy(
+                isSendingCode = true,
+                errorMessage = null,
+                validationErrors = emptyMap()
+            )
+
             try {
-                Log.i("ViewModelInfo", "User: ${user}")
+                Log.i("ViewModelInfo", "Sending code to: ${user.email}")
                 val response = RetrofitInstance.api.sendCode(user)
-                Log.i("ViewModelInfo", "Response: ${response}")
+
+                _authState.value = _authState.value.copy(
+                    isSendingCode = false,
+                    successMessage = "Código enviado a ${user.email}"
+                )
+                onSuccess()
+                Log.i("ViewModelInfo", "Code sent successfully")
+
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
-                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+                Log.e("ViewModelError", "HTTP Error sending code: ${e.code()}, Body: $errorBody")
+
+                val errorMsg = try {
+                    when {
+                        errorBody?.contains("email", ignoreCase = true) == true &&
+                                errorBody.contains("not found", ignoreCase = true) -> "Email no registrado en el sistema"
+
+                        errorBody?.contains("email", ignoreCase = true) == true &&
+                                errorBody.contains("invalid", ignoreCase = true) -> "Formato de email inválido"
+
+                        e.code() == 404 -> "Email no registrado en el sistema"
+                        e.code() == 422 -> "Formato de email inválido"
+                        e.code() == 429 -> "Demasiados intentos. Espera un momento e intenta de nuevo"
+                        else -> "Error al enviar código. Intenta de nuevo"
+                    }
+                } catch (ex: Exception) {
+                    "Error al enviar código"
+                }
+
+                _authState.value = _authState.value.copy(
+                    isSendingCode = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+
             } catch (e: Exception) {
-                Log.e("ViewModelError", "Error: ${e.message}", e)
+                val errorMsg = "Error de conexión. Verifica tu internet"
+                _authState.value = _authState.value.copy(
+                    isSendingCode = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+                Log.e("ViewModelError", "Error sending code: ${e.message}", e)
             }
         }
     }
 
-    fun resetPassword(user: User, onSuccess: (User) -> Unit, onError: (String) -> Unit) {
+    fun resetPassword(user: User, onSuccess: (User) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
+
+            val validationErrors = validateResetPassword(user)
+            if (validationErrors.isNotEmpty()) {
+                _authState.value = _authState.value.copy(
+                    validationErrors = validationErrors,
+                    errorMessage = "Por favor corrige los errores"
+                )
+                return@launch
+            }
+
+            _authState.value = _authState.value.copy(
+                isResettingPassword = true,
+                errorMessage = null,
+                validationErrors = emptyMap()
+            )
+
             try {
-                Log.i("ViewModelInfo", "User: ${user}")
                 val userResetPasswordDto = ResetPasswordRequestDto(
-                    email = user.email ?: "",
+                    email = user.email,
                     code = user.code ?: "",
                     newPassword = user.password ?: "",
                     confirmPassword = user.confirmPassword ?: ""
                 )
+
                 val response = RetrofitInstance.api.resetPassword(userResetPasswordDto)
+
+                _authState.value = _authState.value.copy(
+                    isResettingPassword = false,
+                    successMessage = "Contraseña restablecida exitosamente"
+                )
                 onSuccess(response)
-                Log.i("ViewModelInfo", "Response: ${response}")
+                Log.i("ViewModelInfo", "Password reset successful")
+
             } catch (e: HttpException) {
                 val errorBody = e.response()?.errorBody()?.string()
-                onError("Error al cambiar la contraseña.")
-                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+                Log.e("ViewModelError", "HTTP Error resetting password: ${e.code()}, Body: $errorBody")
+
+                val errorMsg = try {
+                    when {
+                        errorBody?.contains("code", ignoreCase = true) == true &&
+                                (errorBody.contains("invalid", ignoreCase = true) ||
+                                        errorBody.contains("expired", ignoreCase = true)) -> "Código inválido o expirado"
+
+                        errorBody?.contains("password", ignoreCase = true) == true ->
+                            "Error con la nueva contraseña"
+
+                        e.code() == 400 -> "Código inválido o expirado"
+                        e.code() == 404 -> "Usuario no encontrado"
+                        e.code() == 422 -> "Datos inválidos. Verifica el código y contraseña"
+                        else -> "Error al cambiar la contraseña"
+                    }
+                } catch (ex: Exception) {
+                    "Error al cambiar la contraseña"
+                }
+
+                _authState.value = _authState.value.copy(
+                    isResettingPassword = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+
             } catch (e: Exception) {
-                Log.e("ViewModelError", "Error: ${e.message}", e)
+                val errorMsg = "Error de conexión. Verifica tu internet"
+                _authState.value = _authState.value.copy(
+                    isResettingPassword = false,
+                    errorMessage = errorMsg
+                )
+                onError(errorMsg)
+                Log.e("ViewModelError", "Error resetting password: ${e.message}", e)
             }
         }
     }
+
+    fun clearAuthMessages() {
+        _authState.value = _authState.value.copy(
+            errorMessage = null,
+            successMessage = null,
+            validationErrors = emptyMap()
+        )
+    }
+
+
+    fun clearAllStates() {
+        _authState.value = AuthUiState()
+        _uiState.value = _uiState.value.copy(
+            errorMessage = null,
+            successMessage = null
+        )
+    }
+
 
     fun getUser(onSuccess: (User) -> Unit = {}, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
@@ -168,7 +494,6 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
         }
     }
 
-
     fun updateUserProfile(name: String, email: String) {
         Log.i("ViewModelInfo", "Updating profile - Name: $name, Email: $email")
         viewModelScope.launch {
@@ -181,9 +506,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application){
                 val response = RetrofitInstance.api.updateUserProfile(updateDto)
                 Log.i("ViewModelInfo", "Response received - Success: ${response.isSuccessful}, Code: ${response.code()}")
 
-
                 if (response.isSuccessful && response.body() != null) {
-
                     val updatedUser = response.body()!!.user
                     _uiState.value = _uiState.value.copy(
                         isSaving = false,

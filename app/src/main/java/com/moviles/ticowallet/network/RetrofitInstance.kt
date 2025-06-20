@@ -24,5 +24,9 @@ object RetrofitInstance {
     val apiServiceExchangeRate: ApiServiceExchangeRate by lazy {
         retrofit.create(ApiServiceExchangeRate::class.java)
     }
+
+    val apiServiceGoals: ApiServiceGoals by lazy {
+        retrofit.create(ApiServiceGoals::class.java)
+    }
 }
 

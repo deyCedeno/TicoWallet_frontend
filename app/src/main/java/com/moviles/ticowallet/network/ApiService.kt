@@ -49,24 +49,4 @@ interface ApiService {
     @GET("/api/user")
     suspend fun getUser() : User
 
-    //    GOAL
-    @GET("api/goal/get_all")
-    suspend fun getGoals(): List<Goal>
-
-    @GET("api/goal/{id}")
-    suspend fun getGoalById(@Path("id") id: String): Goal
-
-    @PUT("api/goal/{id}")
-    suspend fun updateGoal(@Path("id") id: String, @Body goal: Goal): Goal
-
-    @DELETE("api/goal/{id}")
-    suspend fun deleteGoal(@Path("id") id: String): Response<Void>
-
-    @POST("api/goal")
-    suspend fun createGoal(@Body goal: Goal): Goal
-
-
-
-
-
 }

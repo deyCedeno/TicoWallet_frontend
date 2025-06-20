@@ -1,5 +1,4 @@
 package com.moviles.ticowallet.ui.main
-
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -38,6 +37,7 @@ import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
+import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +123,7 @@ fun MainAppScaffold(
                 if (currentRoute == "objetivos") {
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate("crear_objetivo_screen")
+                            navController.navigate("create_goal")
                         },
                         containerColor = colorTeal,
                         contentColor = colorWhite,
@@ -171,31 +171,45 @@ fun AppNavHost(
         composable("pagos_programados") { PlaceholderScreen("Pagos Programados", PaddingValues()) }
         composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
 
+        // ===== RUTAS DE OBJETIVOS =====
         composable("objetivos") {
+            val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             GoalsScreen(
                 navController = navController,
                 paddingValues = PaddingValues(),
                 onNavigateToCreateGoal = {
-                    navController.navigate("crear_objetivo_screen")
-                }
+                    navController.navigate("create_goal")
+                },
+                goalsViewModel = goalsViewModel
             )
         }
-        composable("crear_objetivo_screen") {
+
+        composable("create_goal") {
+            val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             CreateGoalScreen(
                 navController = navController,
-                paddingValues = PaddingValues()
+                paddingValues = PaddingValues(),
+                goalsViewModel = goalsViewModel
             )
         }
+
         composable(
-            route = "detalle_objetivo_screen/{goalId}",
-            arguments = listOf(navArgument("goalId") { type = NavType.StringType })
+            route = "goal_detail/{goalId}",
+            arguments = listOf(navArgument("goalId") {
+                type = NavType.StringType
+                nullable = false
+            })
         ) { backStackEntry ->
             val goalId = backStackEntry.arguments?.getString("goalId")
-            GoalDetailScreen(
-                navController = navController,
-                goalId = goalId
-            )
+            if (goalId != null) {
+                GoalDetailScreen(
+                    navController = navController,
+                    goalId = goalId
+                )
+            }
         }
+        // ===== FIN RUTAS DE OBJETIVOS =====
+
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
         composable("tipo_cambio") {
             ExchangeRateScreen(paddingValues = PaddingValues())
@@ -211,7 +225,6 @@ fun AppNavHost(
                 })
             }
         }
-
     }
 }
 
