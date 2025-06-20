@@ -1,7 +1,13 @@
 package com.moviles.ticowallet.network
 
 import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
-import com.moviles.ticowallet.models.*
+import com.moviles.ticowallet.DAO.UpdateImageResponse
+import com.moviles.ticowallet.DAO.UpdateUserProfileDto
+import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
+import com.moviles.ticowallet.models.Account
+import com.moviles.ticowallet.models.Goal
+import com.moviles.ticowallet.models.HomePageResponse
+import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -18,14 +24,19 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-//    USERS
-
     @Multipart
     @POST("api/user/register")
     suspend fun addUser(@Part("Name") name: RequestBody,
                          @Part("Email") email: RequestBody,
                          @Part("Password") password: RequestBody,
                          @Part("ConfirmPassword") confirmPassword: RequestBody): User
+
+    @PUT("api/user/update_profile")
+    suspend fun updateUserProfile(@Body updateDto: UpdateUserProfileDto): Response<UpdateUserProfileResponse>
+
+    @Multipart
+    @PUT("api/images/user/update_image")
+    suspend fun updateUserImage(@Part image: MultipartBody.Part): Response<UpdateImageResponse>
 
     @POST("/api/user/login")
     suspend fun signIn(@Body userDto: User) : Response<User>
@@ -52,11 +63,21 @@ interface ApiService {
     @DELETE("api/goal/{id}")
     suspend fun deleteGoal(@Path("id") id: String): Response<Void>
 
+    //  Account
+    @GET("api/statistics/home")
+    suspend fun getAllHome(): HomePageResponse
 
-    // SCHEDULED PAYMENT ENDPOINTS
+    @GET("api/account")
+    suspend fun getAllAccounts(): List<Account>
+
+    @DELETE("api/account/{id}")
+    suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
+
 
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
+
+    // SCHEDULED PAYMENT ENDPOINTS
 
     @GET("api/scheduled-payment")
     suspend fun getScheduledPayments(): List<ScheduledPayment>

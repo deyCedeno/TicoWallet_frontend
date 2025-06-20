@@ -28,6 +28,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
+import com.moviles.ticowallet.ui.account.AccountsScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
@@ -36,12 +37,13 @@ import com.moviles.ticowallet.ui.goals.CreateGoalScreen
 import com.moviles.ticowallet.ui.goals.GoalDetailScreen
 import com.moviles.ticowallet.ui.theme.*
 import com.moviles.ticowallet.ui.user.UserProfileScreen
+import com.moviles.ticowallet.viewmodel.account.AccountViewModel
+import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
+import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
+import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentListScreen
 import com.moviles.ticowallet.ui.scheduledPayment.CreateScheduledPaymentScreen
-import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
-import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
-import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
 
 /**
@@ -105,7 +107,7 @@ fun MainAppScaffold(
                             else -> uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio"
                         }
                         Text(
-                            text = title,
+                            text = uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio",
                             color = colorWhite
                         )
                     },
@@ -138,18 +140,16 @@ fun MainAppScaffold(
             floatingActionButton = {
                 // Only show FAB for specific main screens
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-                when (currentRoute) {
-                    "objetivos" -> {
-                        FloatingActionButton(
-                            onClick = {
-                                navController.navigate("crear_objetivo_screen")
-                            },
-                            containerColor = colorTeal,
-                            contentColor = colorWhite,
-                            shape = CircleShape
-                        ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
-                        }
+                if (currentRoute == "objetivos") {
+                    FloatingActionButton(
+                        onClick = {
+                            navController.navigate("create_goal")
+                        },
+                        containerColor = colorTeal,
+                        contentColor = colorWhite,
+                        shape = CircleShape
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar objetivo")
                     }
                     "pagos_programados" -> {
                         FloatingActionButton(
@@ -175,8 +175,8 @@ fun MainAppScaffold(
                 AppNavHost(
                     navController = navController,
                     mainViewModel = mainViewModel,
-                    paddingValues = innerPadding,
-                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
+                    paddingValues = innerPadding
+//                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
                 )
             }
         }
@@ -191,19 +191,21 @@ fun MainAppScaffold(
 fun AppNavHost(
     navController: NavHostController,
     mainViewModel: MainViewModel,
-    paddingValues: PaddingValues,
-    startDestination: String
+    paddingValues: PaddingValues
+//    startDestination: String
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     NavHost(
         navController = navController,
-        startDestination = startDestination,
+        startDestination = "inicio",
         modifier = Modifier.fillMaxSize().padding(paddingValues)
     ) {
-        // Main screens
-        composable("inicio") { PlaceholderScreen("Inicio", PaddingValues()) }
+        composable("inicio") {
+            val viewModel: HomeViewModel = viewModel()
+            HomeScreen(navController = navController, viewModel)
+        }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
 
@@ -237,38 +239,51 @@ fun AppNavHost(
 
         // Goals - Existing navigation
         composable("objetivos") {
+            val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             GoalsScreen(
                 navController = navController,
                 paddingValues = PaddingValues(),
                 onNavigateToCreateGoal = {
-                    navController.navigate("crear_objetivo_screen")
-                }
+                    navController.navigate("create_goal")
+                },
+                goalsViewModel = goalsViewModel
             )
         }
-        composable("crear_objetivo_screen") {
+
+        composable("create_goal") {
+            val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             CreateGoalScreen(
                 navController = navController,
-                paddingValues = PaddingValues()
+                paddingValues = PaddingValues(),
+                goalsViewModel = goalsViewModel
             )
         }
+
         composable(
-            route = "detalle_objetivo_screen/{goalId}",
-            arguments = listOf(navArgument("goalId") { type = NavType.StringType })
+            route = "goal_detail/{goalId}",
+            arguments = listOf(navArgument("goalId") {
+                type = NavType.StringType
+                nullable = false
+            })
         ) { backStackEntry ->
             val goalId = backStackEntry.arguments?.getString("goalId")
-            GoalDetailScreen(
-                navController = navController,
-                goalId = goalId
-            )
+            if (goalId != null) {
+                GoalDetailScreen(
+                    navController = navController,
+                    goalId = goalId
+                )
+            }
         }
 
         // Other main screens
         composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
-        composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", paddingValues) }
+        composable("tipo_cambio") {
+            ExchangeRateScreen(paddingValues = PaddingValues())
+        }
         composable("ajustes") {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
-                UserProfileScreen(viewModel, onNavigateBack = {}, onLogout = {
+                UserProfileScreen(viewModel, onLogout = {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                     if (context is ComponentActivity) {
                         context.finish()
@@ -276,6 +291,13 @@ fun AppNavHost(
                 })
             }
         }
+
+        composable("cuentas") {
+            val accountViewModel: AccountViewModel = viewModel()
+            AccountsScreen(navController = navController, viewModel = accountViewModel)
+        }
+
+
     }
 }
 

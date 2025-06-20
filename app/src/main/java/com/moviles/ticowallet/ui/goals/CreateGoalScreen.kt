@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,7 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
+import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
+import java.text.SimpleDateFormat
 import java.util.*
 
 private val screenBgColor = Color(0xFF27496d)
@@ -50,7 +55,8 @@ private val onButtonBackgroundColor = Color.White
 @Composable
 fun CreateGoalScreen(
     navController: NavController,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    goalsViewModel: GoalsViewModel = viewModel()
 ) {
     var nameGoal by remember { mutableStateOf("") }
     var quantityGoal by remember { mutableStateOf("") }
@@ -58,8 +64,13 @@ fun CreateGoalScreen(
     var goalDate by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var selectedIcon by remember { mutableStateOf<ImageVector>(Icons.Filled.Flag) }
-
     var showIconPickerDialog by remember { mutableStateOf(false) }
+
+    var showNameError by remember { mutableStateOf(false) }
+    var showQuantityError by remember { mutableStateOf(false) }
+    var showDateError by remember { mutableStateOf(false) }
+
+    val uiState by goalsViewModel.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -71,8 +82,58 @@ fun CreateGoalScreen(
         context,
         { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDayOfMonth: Int ->
             goalDate = "$selectedDayOfMonth/${selectedMonth + 1}/$selectedYear"
+            showDateError = false
         }, year, month, day
     )
+
+    fun createGoal() {
+        showNameError = false
+        showQuantityError = false
+        showDateError = false
+
+        if (nameGoal.isBlank()) {
+            showNameError = true
+            return
+        }
+
+        val quantity = quantityGoal.toDoubleOrNull()
+        if (quantity == null || quantity <= 0) {
+            showQuantityError = true
+            return
+        }
+
+        if (goalDate.isBlank()) {
+            showDateError = true
+            return
+        }
+
+        try {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val parsedDate = dateFormat.parse(goalDate) ?: Date()
+
+            val current = currentQuantity.toDoubleOrNull() ?: 0.0
+            val iconName = goalsViewModel.getIconName(selectedIcon)
+
+            goalsViewModel.createGoal(
+                name = nameGoal,
+                quantity = quantity,
+                goalDate = parsedDate,
+                currentQuantity = current,
+                icon = iconName,
+                note = notes.takeIf { it.isNotBlank() }
+            )
+
+        } catch (e: Exception) {
+            showDateError = true
+        }
+    }
+
+    LaunchedEffect(uiState.successMessage) {
+        if (uiState.successMessage != null) {
+            goalsViewModel.clearMessages()
+            navController.popBackStack()
+        }
+    }
 
     if (showIconPickerDialog) {
         IconPickerDialog(
@@ -87,38 +148,31 @@ fun CreateGoalScreen(
     TicoWalletTheme(darkTheme = true) {
         Scaffold(
             containerColor = screenBgColor,
-            /*
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            "Nuevo objetivo",
+                            text = "Crear Objetivo",
                             color = onAppBarColor,
-                            modifier = Modifier.padding(start = 8.dp)
+                            fontWeight = FontWeight.Bold
                         )
                     },
                     navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            },
-                            modifier = Modifier.padding(start = 8.dp)
-                        ) {
+                        IconButton(onClick = {
+                            navController.popBackStack()
+                        }) {
                             Icon(
-                                Icons.Filled.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Volver atrás",
-                                tint = onAppBarColor,
-                                modifier = Modifier.size(24.dp)
+                                tint = onAppBarColor
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = appBarColor,
-                    ),
-                    modifier = Modifier.height(64.dp)
+                        containerColor = appBarColor
+                    )
                 )
             }
-            */
         ) { innerPaddingScaffoldCrear ->
             Column(
                 modifier = Modifier
@@ -154,6 +208,8 @@ fun CreateGoalScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Nombre del objetivo
                 Column {
                     Text(
                         text = "Nombre del objetivo",
@@ -163,16 +219,30 @@ fun CreateGoalScreen(
                     )
                     TextField(
                         value = nameGoal,
-                        onValueChange = { nameGoal = it },
+                        onValueChange = {
+                            nameGoal = it
+                            showNameError = false
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                         colors = customTextFieldColors,
-                        shape = textFieldShape
+                        shape = textFieldShape,
+                        isError = showNameError
                     )
+                    if (showNameError) {
+                        Text(
+                            text = "El nombre es requerido",
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Monto del objetivo
                 Column {
                     Text(
                         text = "Monto del objetivo",
@@ -182,7 +252,10 @@ fun CreateGoalScreen(
                     )
                     TextField(
                         value = quantityGoal,
-                        onValueChange = { quantityGoal = it },
+                        onValueChange = {
+                            quantityGoal = it
+                            showQuantityError = false
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
@@ -191,12 +264,22 @@ fun CreateGoalScreen(
                         singleLine = true,
                         colors = customTextFieldColors,
                         shape = textFieldShape,
-                        leadingIcon = { Text("₡", color = textFieldLabelColor, fontSize = 18.sp, fontWeight = FontWeight.Normal) }
+                        leadingIcon = { Text("₡", color = textFieldLabelColor, fontSize = 18.sp, fontWeight = FontWeight.Normal) },
+                        isError = showQuantityError
                     )
+                    if (showQuantityError) {
+                        Text(
+                            text = "Ingresa un monto válido",
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Saldo actual
                 Column {
                     Text(
                         text = "Saldo actual",
@@ -221,6 +304,7 @@ fun CreateGoalScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Notas
                 Column {
                     Text(
                         text = "Notas",
@@ -243,6 +327,7 @@ fun CreateGoalScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Fecha e ícono
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -259,12 +344,13 @@ fun CreateGoalScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        // Fecha
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp)
                                 .clip(textFieldShape)
-                                .background(textFieldContainerColor)
+                                .background(if (showDateError) Color.Red.copy(alpha = 0.1f) else textFieldContainerColor)
                                 .clickable { datePickerDialog.show() }
                                 .padding(horizontal = 16.dp),
                             contentAlignment = Alignment.CenterStart
@@ -288,6 +374,7 @@ fun CreateGoalScreen(
                             }
                         }
 
+                        // Ícono
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -318,12 +405,21 @@ fun CreateGoalScreen(
                             }
                         }
                     }
+
+                    if (showDateError) {
+                        Text(
+                            text = "Selecciona una fecha",
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
                 }
 
+                // Botón crear
                 Button(
-                    onClick = {
-                        navController.popBackStack()
-                    },
+                    onClick = { createGoal() },
+                    enabled = !uiState.isCreatingGoal,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp)
@@ -334,13 +430,39 @@ fun CreateGoalScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Crear Objetivo", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    if (uiState.isCreatingGoal) {
+                        CircularProgressIndicator(
+                            color = onButtonBackgroundColor,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Creando...", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    } else {
+                        Text("Crear Objetivo", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                // Mostrar errores
+                uiState.errorMessage?.let { error ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f))
+                    ) {
+                        Text(
+                            text = error,
+                            color = Color.Red,
+                            modifier = Modifier.padding(16.dp),
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -390,8 +512,7 @@ fun IconPickerDialog(
                 }
             }
         },
-        confirmButton = {
-        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
                 Text("Cancelar", color = MaterialTheme.colorScheme.primary)
@@ -400,17 +521,8 @@ fun IconPickerDialog(
     )
 }
 
-
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
 @Composable
-fun CreateGoalScreenPreview_Refined() {
+fun CreateGoalScreenPreview() {
     CreateGoalScreen(navController = rememberNavController(), paddingValues = PaddingValues(0.dp))
-}
-
-@Preview(showBackground = true)
-@Composable
-fun IconPickerDialogPreview() {
-    TicoWalletTheme {
-        IconPickerDialog(onDismissRequest = {}, onIconSelected = {})
-    }
 }
