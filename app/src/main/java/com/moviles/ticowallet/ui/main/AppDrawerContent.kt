@@ -21,7 +21,6 @@ import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.ui.theme.colorDarkBlue2
 import com.moviles.ticowallet.ui.theme.colorWhite
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDrawerContent(
     userName: String,

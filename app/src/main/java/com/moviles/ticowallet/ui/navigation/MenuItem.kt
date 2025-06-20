@@ -18,5 +18,6 @@ val defaultMenuItems = listOf(
     MenuItem("objetivos", "Objetivos", Icons.Filled.Flag),
     MenuItem("garantias", "Garantías", Icons.Filled.VerifiedUser),
     MenuItem("tipo_cambio", "Tipo de cambio", Icons.Filled.CurrencyExchange),
-    MenuItem("ajustes", "Ajustes", Icons.Filled.Settings)
+    MenuItem("ajustes", "Ajustes", Icons.Filled.Settings),
+    MenuItem("cuentas", "Cuentas", Icons.Filled.AccountBalance)
 )
