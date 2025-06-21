@@ -301,7 +301,8 @@ fun AppNavHost(
         }
 
         composable("crear_cuenta") {
-            CreateAccountScreen(navController = navController)
+            val accountViewModel: AccountViewModel = viewModel()
+            CreateAccountScreen(navController = navController, accountViewModel)
         }
 
 
