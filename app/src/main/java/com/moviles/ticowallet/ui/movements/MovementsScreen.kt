@@ -91,14 +91,13 @@ fun MovementsScreen(navController: NavController, viewModel: MovementViewModel) 
             if ((MovementState.value == null && showNoMovementsMessage.value) || MovementState.value?.isEmpty() == true) {
                 MovementNotFound()
             } else {
-                // El Card exterior que envuelve toda la lista
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(scrollState)
-                        .padding(horizontal = 8.dp, vertical = 8.dp), // Añadido padding vertical
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d)) // Color de fondo del Card exterior
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF27496d))
                 ) {
                     Column(
                         modifier = Modifier
@@ -188,7 +187,7 @@ fun MovementItem(movement: MovementGet, onDeleteClick: (MovementGet) -> Unit, on
                     text = movement.description,
                     color = Color.White,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold // Descripción en negrita
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
@@ -196,31 +195,30 @@ fun MovementItem(movement: MovementGet, onDeleteClick: (MovementGet) -> Unit, on
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = movement.type + " ", // Asumiendo que 'type' puede ser "Efectivo"
+                        text = movement.type + " ",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 14.sp
                     )
                     Text(
-                        text = movement.location, // Asumiendo que 'source' es "Gollo"
+                        text = movement.location,
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 14.sp
                     )
                 }
             }
 
-            // Columna derecha con monto, fecha y estado
             Column(
-                horizontalAlignment = Alignment.End // Alinea el contenido a la derecha
+                horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "${movement.currency} ${movement.amount}", // Formato de moneda y monto
-                    color = Color.Red, // Rojo para el monto
+                    text = "${movement.currency} ${movement.amount}",
+                    color = Color.Red,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = movement.date, // Asumiendo que 'date' es "Hoy"
+                    text = movement.date,
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp
                 )
@@ -232,10 +230,10 @@ fun MovementItem(movement: MovementGet, onDeleteClick: (MovementGet) -> Unit, on
                 )
             }
 
-            // Iconos de editar y eliminar (mantenidos de tu código original, si aún los necesitas)
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 8.dp) // Pequeño espacio para separar de los textos
+                modifier = Modifier.padding(start = 8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
