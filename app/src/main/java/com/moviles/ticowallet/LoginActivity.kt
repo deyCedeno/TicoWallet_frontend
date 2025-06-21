@@ -2,6 +2,7 @@ package com.moviles.ticowallet
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -82,66 +83,12 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
     // Diálogo de éxito
     if (showSuccessDialog) {
-        AlertDialog(
-            onDismissRequest = { showSuccessDialog = false },
-            containerColor = Color.White,
-            title = {
-                Text(
-                    text = "¡Éxito!",
-                    color = Color(0xFF4CAF50),
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = authState.successMessage ?: "",
-                    color = Color.Black
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showSuccessDialog = false
-                        viewModel.clearAuthMessages()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                ) {
-                    Text("OK", color = Color.White)
-                }
-            }
-        )
+        Toast.makeText(context, "Inicio exitoso.", Toast.LENGTH_SHORT).show()
     }
 
     // Diálogo de error
     if (showErrorDialog) {
-        AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
-            containerColor = Color.White,
-            title = {
-                Text(
-                    text = "Error",
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = authState.errorMessage ?: "",
-                    color = Color.Black
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showErrorDialog = false
-                        viewModel.clearAuthMessages()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("OK", color = Color.White)
-                }
-            }
-        )
+        Toast.makeText(context, "Error al iniciar sesión.", Toast.LENGTH_SHORT).show()
     }
 
     Column(

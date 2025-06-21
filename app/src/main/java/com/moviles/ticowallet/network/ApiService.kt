@@ -77,6 +77,9 @@ interface ApiService {
     @DELETE("api/account/{id}")
     suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
 
+    @POST("/api/account/register")
+    suspend fun addAccount(@Body account: Account) : Account
+
 
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal

@@ -28,7 +28,6 @@ class MainViewModel : ViewModel() {
                 currentState.copy(selectedItemRoute = selectedItem.route)
             }
             println("ViewModel: Item seleccionado -> ${selectedItem.route}")
-
         }
     }
 }

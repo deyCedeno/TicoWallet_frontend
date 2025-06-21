@@ -2,9 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt") // Para Room
+    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    //id("com.google.gms.google-services")
 }
 
 android {
@@ -43,7 +42,6 @@ android {
 }
 
 dependencies {
-
     // AndroidX core y componentes base
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation(libs.androidx.core.ktx)
@@ -56,14 +54,15 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
-    // Vistas tradicionales (si aún las usas junto con Compose)
+    // Vistas tradicionales
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.constraintlayout)
 
     // ViewModel para Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
-    // Navegación (Fragmentos y UI KTX - asegúrate de necesitar ambas si usas Fragments y Navigation con Compose)
+    // Navegación
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.compose)
@@ -74,7 +73,13 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
-    // Coil para carga de imágenes en Compose
+    // Networking adicional (versiones específicas)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Coil para carga de imágenes
     implementation(libs.coil.compose)
 
     // Room Database
@@ -87,10 +92,10 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
-    // Firebase (Descomentadas si las necesitas)
-    // implementation(libs.firebase.bom)
-    // implementation(libs.firebase.messaging)
-    // implementation(libs.firebase.analytics)
+    // Hilt Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Testing
     testImplementation(libs.junit)
@@ -100,9 +105,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    implementation("com.google.dagger:hilt-android:2.51.1") // O la versión más reciente
-    kapt("com.google.dagger:hilt-compiler:2.51.1") // O ksp para KSP
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // Para hiltViewModel()
-    implementation("androidx.navigation:navigation-compose:2.9.0")
 }

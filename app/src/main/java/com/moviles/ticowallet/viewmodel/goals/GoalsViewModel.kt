@@ -11,8 +11,8 @@ import com.moviles.ticowallet.DAO.CreateGoalRequestDto
 import com.moviles.ticowallet.DAO.UpdateGoalRequestDto
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.network.RetrofitInstance
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
