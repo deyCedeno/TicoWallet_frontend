@@ -1,5 +1,6 @@
 package com.moviles.ticowallet.ui.account
 
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
@@ -34,11 +35,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.ui.theme.colorDarkBlue1
 import com.moviles.ticowallet.ui.theme.colorDarkBlue2
 import com.moviles.ticowallet.ui.theme.colorTeal
@@ -47,6 +50,7 @@ import com.moviles.ticowallet.viewmodel.account.AccountViewModel
 
 @Composable
 fun CreateAccountScreen(navController: NavController, viewModel: AccountViewModel) {
+    val context = LocalContext.current
     // State variables for the form fields
     val accountName = remember { mutableStateOf("") }
 
@@ -151,14 +155,14 @@ fun CreateAccountScreen(navController: NavController, viewModel: AccountViewMode
 
                 Button(
                     onClick = {
-                        // Handle account creation logic here
-                        // You can now access:
-                        // accountName.value
-                        // selectedAccountType.value
-                        // currentBalance.value
-                        // selectedCurrency.value
-                        // After creation, you might want to navigate back:
-                        navController.popBackStack()
+                        try {
+                            var account = Account(null, accountName.value, selectedAccountType.value, currentBalance.value.toDouble(), selectedCurrency.value)
+                            var newAccount = viewModel.addAccount(account)
+                            Toast.makeText(context, "Mae cuenta creada con éxito.", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        } catch (e: NumberFormatException) {
+                            Toast.makeText(context, "El saldo no es valido.", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
