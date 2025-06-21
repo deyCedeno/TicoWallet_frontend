@@ -52,15 +52,7 @@ fun GoalsScreen(
             .fillMaxSize()
             .padding(paddingValues),
         containerColor = colorDarkBlue1,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToCreateGoal,
-                containerColor = colorTeal,
-                contentColor = colorWhite
-            ) {
 
-            }
-        }
     ) { innerScaffoldPadding ->
         Column(
             modifier = Modifier

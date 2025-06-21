@@ -28,5 +28,8 @@ object RetrofitInstance {
     val apiServiceGoals: ApiServiceGoals by lazy {
         retrofit.create(ApiServiceGoals::class.java)
     }
-}
 
+    val warrantyApi: WarrantyService by lazy {
+        retrofit.create(WarrantyService::class.java)
+    }
+}

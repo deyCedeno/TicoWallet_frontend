@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private val screenBgColor = Color(0xFF27496d)
-private val appBarColor = Color(0xFF0A3B4C)
+private val appBarColor = Color(0xFF27496d)
 private val onAppBarColor = Color.White
 
 private val textFieldContainerColor = Color(0xFF122850)
@@ -152,7 +152,7 @@ fun CreateGoalScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Crear Objetivo",
+                            text = "Crear un Objetivo",
                             color = onAppBarColor,
                             fontWeight = FontWeight.Bold
                         )
