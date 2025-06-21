@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -41,6 +42,11 @@ import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
+import com.moviles.ticowallet.ui.warranties.AddEditWarrantyScreen
+import com.moviles.ticowallet.ui.warranties.WarrantiesScreen
+import com.moviles.ticowallet.ui.warranties.WarrantyDetailScreen
+import com.moviles.ticowallet.ui.warranties.getSampleWarranties
+import com.moviles.ticowallet.viewmodel.warranties.WarrantiesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,6 +248,107 @@ fun AppNavHost(
         }
 
 
+        composable("garantias") {
+            val warrantiesViewModel: WarrantiesViewModel = hiltViewModel()
+            val warranties by warrantiesViewModel.warranties.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+            val error by warrantiesViewModel.error.collectAsStateWithLifecycle()
+
+            error?.let { errorMessage ->
+                LaunchedEffect(errorMessage) {
+                    android.util.Log.e("WarrantiesScreen", "Error: $errorMessage")
+                    warrantiesViewModel.clearError()
+                }
+            }
+
+            WarrantiesScreen(
+                warranties = warranties,
+                isLoading = isLoading,
+                onWarrantyClick = { warranty ->
+                    navController.navigate("detalle_garantia/${warranty.idWarranty}")
+                },
+                onAddWarrantyClick = {
+                    navController.navigate("agregar_garantia")
+                }
+            )
+        }
+
+        composable(
+            route = "detalle_garantia/{warrantyId}",
+            arguments = listOf(navArgument("warrantyId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val warrantyId = backStackEntry.arguments?.getInt("warrantyId") ?: 0
+            val warrantiesViewModel: WarrantiesViewModel = hiltViewModel()
+            val selectedWarranty by warrantiesViewModel.selectedWarranty.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+
+            LaunchedEffect(warrantyId) {
+                warrantiesViewModel.loadWarrantyById(warrantyId)
+            }
+
+            WarrantyDetailScreen(
+                warranty = selectedWarranty,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onEditClick = {
+                    navController.navigate("editar_garantia/$warrantyId")
+                },
+                onDeleteConfirm = {
+                    warrantiesViewModel.deleteWarranty(warrantyId)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("agregar_garantia") {
+            val warrantiesViewModel: WarrantiesViewModel = hiltViewModel()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+
+            AddEditWarrantyScreen(
+                warranty = null,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { name, price, purchaseDate, expirationDate, icon ->
+                    warrantiesViewModel.createWarranty(name, price, purchaseDate, expirationDate, icon)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "editar_garantia/{warrantyId}",
+            arguments = listOf(navArgument("warrantyId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val warrantyId = backStackEntry.arguments?.getInt("warrantyId") ?: 0
+            val warrantiesViewModel: WarrantiesViewModel = hiltViewModel()
+            val selectedWarranty by warrantiesViewModel.selectedWarranty.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+
+            LaunchedEffect(warrantyId) {
+                if (selectedWarranty?.idWarranty != warrantyId) {
+                    warrantiesViewModel.loadWarrantyById(warrantyId)
+                }
+            }
+
+            AddEditWarrantyScreen(
+                warranty = selectedWarranty,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { name, price, purchaseDate, expirationDate, icon ->
+                    warrantiesViewModel.updateWarranty(warrantyId, name, price, purchaseDate, expirationDate, icon)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("tipo_cambio") { PlaceholderScreen("Tipo de Cambio", PaddingValues()) }
+        composable("ajustes") { PlaceholderScreen("Ajustes", PaddingValues()) }
     }
 }
 

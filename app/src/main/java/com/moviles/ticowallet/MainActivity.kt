@@ -14,7 +14,9 @@ import android.util.Log
 import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.ui.main.MainAppScaffold
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
