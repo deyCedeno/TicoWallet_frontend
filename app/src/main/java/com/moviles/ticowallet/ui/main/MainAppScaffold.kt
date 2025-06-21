@@ -145,7 +145,7 @@ fun MainAppScaffold(
                     "objetivos" -> {
                         FloatingActionButton(
                             onClick = {
-                                navController.navigate("crear_objetivo_screen")
+                                navController.navigate("create_goal")
                             },
                             containerColor = colorTeal,
                             contentColor = colorWhite,
