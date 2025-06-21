@@ -9,5 +9,6 @@ data class Account(
     val name: String,
     val accountType: String,
     val balance: Double,
-    val currency: String
+    val currency: String,
+    val movements: List<Movement>? = null
 )

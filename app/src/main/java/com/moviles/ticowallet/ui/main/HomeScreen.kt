@@ -190,7 +190,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { /* TODO: Lógica para mostrar más */ },
+                        onClick = { navController.navigate("registros") },
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF388E8E),
