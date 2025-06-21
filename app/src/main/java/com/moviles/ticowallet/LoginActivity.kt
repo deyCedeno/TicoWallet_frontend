@@ -83,12 +83,12 @@ fun LoginScreen(viewModel: UserViewModel, onNavigate: (Class<*>) -> Unit) {
 
     // Diálogo de éxito
     if (showSuccessDialog) {
-        Toast.makeText(context, "Inicio exitoso.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Bienvenido mae.", Toast.LENGTH_SHORT).show()
     }
 
     // Diálogo de error
     if (showErrorDialog) {
-        Toast.makeText(context, "Error al iniciar sesión.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Mae! error al iniciar sesión.", Toast.LENGTH_SHORT).show()
     }
 
     Column(
