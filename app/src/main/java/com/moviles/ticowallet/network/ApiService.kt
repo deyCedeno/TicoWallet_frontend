@@ -1,9 +1,23 @@
 package com.moviles.ticowallet.network
 
+import com.moviles.ticowallet.DAO.ResetPasswordRequestDto
+import com.moviles.ticowallet.DAO.UpdateImageResponse
+import com.moviles.ticowallet.DAO.UpdateUserProfileDto
+import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
+import com.moviles.ticowallet.models.Account
+import com.moviles.ticowallet.models.Category
+import com.moviles.ticowallet.models.CreateMovementDto
+import com.moviles.ticowallet.models.CreateScheduledPaymentDto
+import com.moviles.ticowallet.models.DashboardResponse
 import com.moviles.ticowallet.models.Goal
+import com.moviles.ticowallet.models.HomePageResponse
+import com.moviles.ticowallet.models.Movement
+import com.moviles.ticowallet.models.MovementGet
+import com.moviles.ticowallet.models.ScheduledPayment
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -17,42 +31,33 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-
     @Multipart
     @POST("api/user/register")
-    suspend fun addUser(
-        @Part("Name") name: RequestBody,
-        @Part("Password") password: RequestBody,
-        @Part("Email") email: RequestBody,
-        @Part("Date") date: RequestBody,
-        @Part file: MultipartBody.Part?
-    ): User
-    /*
-    @POST("api/user/login")
-    suspend fun login(
-        @Body loginRequest: LoginRequest
-    ): User
-    */
+    suspend fun addUser(@Part("Name") name: RequestBody,
+                         @Part("Email") email: RequestBody,
+                         @Part("Password") password: RequestBody,
+                         @Part("ConfirmPassword") confirmPassword: RequestBody): User
 
-    @GET("api/user")
-    suspend fun getUsers(): List<User>
+    @PUT("api/user/update_profile")
+    suspend fun updateUserProfile(@Body updateDto: UpdateUserProfileDto): Response<UpdateUserProfileResponse>
 
-    @GET("api/user/logout")
-    suspend fun logout(): Response<Void>
+    @Multipart
+    @PUT("api/images/user/update_image")
+    suspend fun updateUserImage(@Part image: MultipartBody.Part): Response<UpdateImageResponse>
 
-    @GET("api/user/send_code")
-    suspend fun sendCode(
-        @Query("email") email: String
-    ): Response<Void>
+    @POST("/api/user/login")
+    suspend fun signIn(@Body userDto: User) : Response<User>
 
-    @GET("api/user/reset_password")
-    suspend fun resetPassword(
-        @Query("email") email: String,
-        @Query("code") code: String,
-        @Query("password") password: String
-    ): Response<Void>
+    @POST("/api/user/send_code")
+    suspend fun sendCode(@Body userDto: User) : User
 
+    @POST("/api/user/reset_password")
+    suspend fun resetPassword(@Body resetPasswordDto: ResetPasswordRequestDto): User
 
+    @GET("/api/user")
+    suspend fun getUser() : User
+
+    //    GOAL
     @GET("api/goal/get_all")
     suspend fun getGoals(): List<Goal>
 
@@ -65,11 +70,69 @@ interface ApiService {
     @DELETE("api/goal/{id}")
     suspend fun deleteGoal(@Path("id") id: String): Response<Void>
 
+    //  Account
+    @GET("api/statistics/home")
+    suspend fun getAllHome(): HomePageResponse
+
+    @GET("api/account")
+    suspend fun getAllAccounts(): List<Account>
+
+    @DELETE("api/account/{id}")
+    suspend fun deleteAccount(@Path("id") Id: Int): Response<Void>
+
+    @POST("/api/account/register")
+    suspend fun addAccount(@Body account: Account) : Account
+
+    @GET("api/account/{id}")
+    suspend fun findOneAccount(@Path("id") Id: Int) : List<Account>
+
+    @PUT("api/account/{id}")
+    suspend fun updateAccount(@Path("id") Id: Int, @Body account: Account) : Account
+
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
 
+    // SCHEDULED PAYMENT ENDPOINTS
 
+    @GET("api/scheduled-payment")
+    suspend fun getScheduledPayments(): List<ScheduledPayment>
 
+    @GET("api/scheduled-payment/{id}")
+    suspend fun getScheduledPaymentById(@Path("id") id: Int): ScheduledPayment
 
+    @GET("api/scheduled-payment/accounts")
+    suspend fun getUserAccounts(): List<Account>
 
+    @GET("api/scheduled-payment/categories")
+    suspend fun getCategories(): List<Category>
+
+    @POST("api/scheduled-payment")
+    suspend fun createScheduledPayment(@Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @PUT("api/scheduled-payment/{id}")
+    suspend fun updateScheduledPayment(@Path("id") id: Int, @Body scheduledPayment: CreateScheduledPaymentDto): Response<ApiResponse>
+
+    @DELETE("api/scheduled-payment/{id}")
+    suspend fun deleteScheduledPayment(@Path("id") id: Int): Response<ApiResponse>
+
+//    Movements
+    @GET("api/accountmovement")
+    suspend fun getAllMovements(): List<MovementGet>
+
+    @DELETE("api/accountmovement/{id}")
+    suspend fun deleteMovement(@Path("id") id: Int): Response<ApiResponse>
+
+    @POST("api/accountmovement/register")
+    suspend fun createMovement(@Body movementGet: CreateMovementDto): MovementGet
+
+    // Dashboard
+
+    @GET("api/statistics/dashboard")
+    suspend fun getDashboardStats(): DashboardResponse
 }
+
+// Generic API response for success/error messages
+data class ApiResponse(
+    val message: String? = null,
+    val error: String? = null
+)

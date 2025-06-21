@@ -7,8 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,8 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
-import com.moviles.ticowallet.navigation.AppDestinations
 import com.moviles.ticowallet.ui.theme.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -39,16 +38,21 @@ fun GoalsScreen(
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Activo", "Pausado", "Conseguido")
 
-    val activeGoals by goalsViewModel.activeGoals.collectAsState()
-    val pausedGoals by goalsViewModel.pausedGoals.collectAsState()
-    val achievedGoals by goalsViewModel.achievedGoals.collectAsState()
+    val uiState by goalsViewModel.uiState.collectAsStateWithLifecycle()
+    val activeGoals by goalsViewModel.activeGoals.collectAsStateWithLifecycle()
+    val pausedGoals by goalsViewModel.pausedGoals.collectAsStateWithLifecycle()
+    val achievedGoals by goalsViewModel.achievedGoals.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        goalsViewModel.refreshGoals()
+    }
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues),
-        containerColor = colorDarkBlue1
+        containerColor = colorDarkBlue1,
+
     ) { innerScaffoldPadding ->
         Column(
             modifier = Modifier
@@ -91,29 +95,52 @@ fun GoalsScreen(
                 }
             }
 
-            when (selectedTabIndex) {
-                0 -> FilteredGoalsContent(
-                    modifier = Modifier.weight(1f),
-                    goals = activeGoals,
-                    statusTitle = "Activo",
-                    goalsViewModel = goalsViewModel,
-                    navController = navController
-                )
-                1 -> FilteredGoalsContent(
-                    modifier = Modifier.weight(1f),
-                    goals = pausedGoals,
-                    statusTitle = "Pausado",
-                    goalsViewModel = goalsViewModel,
-                    navController = navController
-                )
-                2 -> FilteredGoalsContent(
-                    modifier = Modifier.weight(1f),
-                    goals = achievedGoals,
-                    statusTitle = "Conseguido",
-                    goalsViewModel = goalsViewModel,
-                    navController = navController
-                )
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorDarkBlue1),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = colorTeal)
+                }
+            } else {
+                when (selectedTabIndex) {
+                    0 -> FilteredGoalsContent(
+                        modifier = Modifier.weight(1f),
+                        goals = activeGoals,
+                        statusTitle = "Activo",
+                        goalsViewModel = goalsViewModel,
+                        navController = navController
+                    )
+                    1 -> FilteredGoalsContent(
+                        modifier = Modifier.weight(1f),
+                        goals = pausedGoals,
+                        statusTitle = "Pausado",
+                        goalsViewModel = goalsViewModel,
+                        navController = navController
+                    )
+                    2 -> FilteredGoalsContent(
+                        modifier = Modifier.weight(1f),
+                        goals = achievedGoals,
+                        statusTitle = "Conseguido",
+                        goalsViewModel = goalsViewModel,
+                        navController = navController
+                    )
+                }
             }
+        }
+    }
+
+    uiState.successMessage?.let { message ->
+        LaunchedEffect(message) {
+            goalsViewModel.clearMessages()
+        }
+    }
+
+    uiState.errorMessage?.let { error ->
+        LaunchedEffect(error) {
+            goalsViewModel.clearMessages()
         }
     }
 }
@@ -133,11 +160,33 @@ fun FilteredGoalsContent(
                 .background(colorDarkBlue1),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                "No hay objetivos en estado '$statusTitle'.",
-                color = colorWhite,
-                textAlign = TextAlign.Center
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = null,
+                    tint = colorWhite.copy(alpha = 0.5f),
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No hay objetivos en estado '$statusTitle'",
+                    color = colorWhite.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if (statusTitle == "Activo") {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "¡Crea tu primer objetivo!",
+                        color = colorTeal,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
     } else {
         LazyColumn(
@@ -147,7 +196,7 @@ fun FilteredGoalsContent(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(goals) { goal ->
+            items(goals, key = { goal -> goal.id }) { goal ->
                 GoalCard(
                     goal = goal,
                     goalsViewModel = goalsViewModel,
@@ -175,22 +224,15 @@ fun GoalCard(
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val formattedDate = goal.goalDate?.let { dateFormat.format(it) }
 
-    val icon = when (goal.icon.lowercase()) {
-        "home" -> Icons.Default.Home
-        "directions_car" -> Icons.Default.DirectionsCar
-
-        else -> goalsViewModel.getIconVector(goal.icon)
-    }
+    val icon = goalsViewModel.getIconVector(goal.icon)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
 
-                navController.navigate("${AppDestinations.GOAL_DETAIL_ROUTE}/${goal.id}")
-            }
-
-        ,
+                navController.navigate("goal_detail/${goal.id}")
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = colorDarkBlue2)
     ) {
@@ -202,16 +244,45 @@ fun GoalCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = goal.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colorWhite,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = goal.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colorWhite,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = when (goal.state) {
+                                "Activo" -> colorTeal.copy(alpha = 0.2f)
+                                "Pausado" -> colorOrange.copy(alpha = 0.2f)
+                                "Conseguido" -> colorGreen1.copy(alpha = 0.2f)
+                                else -> colorWhite.copy(alpha = 0.1f)
+                            }
+                        ),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = goal.state,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = when (goal.state) {
+                                "Activo" -> colorTeal
+                                "Pausado" -> colorOrange
+                                "Conseguido" -> colorGreen1
+                                else -> colorWhite
+                            },
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
 
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(colorTeal),
                     contentAlignment = Alignment.Center
@@ -225,7 +296,7 @@ fun GoalCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = formattedDate?.let { "Fecha límite: $it" } ?: "Sin fecha límite",
@@ -233,7 +304,7 @@ fun GoalCard(
                 color = colorWhite.copy(alpha = 0.7f)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -246,34 +317,70 @@ fun GoalCard(
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp)),
                     trackColor = colorWhite.copy(alpha = 0.3f),
-                    color = colorTeal
+                    color = when (goal.state) {
+                        "Conseguido" -> colorGreen1
+                        "Pausado" -> colorOrange
+                        else -> colorTeal
+                    }
                 )
 
                 Text(
                     text = "$progressPercent%",
                     color = colorWhite,
                     style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Ahorrado: CRC ${formatAmount(goal.currentQuantity)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorGreen1
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Ahorrado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorWhite.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "₡${formatAmount(goal.currentQuantity)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorGreen1,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-            Text(
-                text = "Objetivo: CRC ${formatAmount(goal.quantity)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colorWhite
-            )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Objetivo",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorWhite.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "₡${formatAmount(goal.quantity)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorWhite,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            if (goal.state != "Conseguido" && goal.currentQuantity < goal.quantity) {
+                Spacer(modifier = Modifier.height(8.dp))
+                val remaining = goal.quantity - goal.currentQuantity
+                Text(
+                    text = "Faltan: ₡${formatAmount(remaining)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorOrange,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
-
 
 fun formatAmount(amount: Double): String {
     val longAmount = amount.toLong()
@@ -283,9 +390,3 @@ fun formatAmount(amount: Double): String {
         .joinToString(".")
         .reversed()
 }
-
-
-// fun formatAmountWithDecimals(amount: Double): String {
-//    val formatter = DecimalFormat("#,###.00") // Para dos decimales
-//    return formatter.format(amount)
-// }
