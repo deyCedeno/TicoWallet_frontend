@@ -3,24 +3,24 @@ package com.moviles.ticowallet.viewmodel.warranties
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.models.Warranty
 import com.moviles.ticowallet.network.CreateWarrantyRequest
+import com.moviles.ticowallet.network.RetrofitInstance
 import com.moviles.ticowallet.network.UpdateWarrantyRequest
 import com.moviles.ticowallet.network.WarrantyService
 import com.moviles.ticowallet.network.WarrantyStatistics
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.*
-import javax.inject.Inject
 
-@HiltViewModel
-class WarrantiesViewModel @Inject constructor(
-    private val apiService: WarrantyService
-) : ViewModel() {
+class WarrantiesViewModel : ViewModel() {
+
+    private val apiService: WarrantyService = RetrofitInstance.warrantyApi
 
     private val _warranties = MutableStateFlow<List<Warranty>>(emptyList())
     val warranties: StateFlow<List<Warranty>> = _warranties.asStateFlow()
@@ -39,8 +39,14 @@ class WarrantiesViewModel @Inject constructor(
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
+    companion object {
+        private const val TAG = "WarrantiesViewModel"
+    }
+
     init {
-        Log.d("WarrantiesViewModel", "ViewModel initialized")
+        Log.d(TAG, "ViewModel initialized")
+        Log.d(TAG, "AUTH_TOKEN: '${Constants.AUTH_TOKEN}'")
+        Log.d(TAG, "API_BASE_URL: '${Constants.API_BASE_URL}'")
         loadWarranties()
     }
 
@@ -48,19 +54,75 @@ class WarrantiesViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+
             try {
-                Log.d("WarrantiesViewModel", "Attempting to load warranties from API...")
+                Log.d(TAG, "Loading warranties from API...")
+                Log.d(TAG, "Token being used: '${Constants.AUTH_TOKEN}'")
+
+                if (Constants.AUTH_TOKEN.isEmpty()) {
+                    Log.w(TAG, "AUTH_TOKEN is empty!")
+                    _error.value = "Token de autenticación no encontrado. Inicia sesión nuevamente."
+                    _warranties.value = emptyList()
+                    return@launch
+                }
 
                 val response = apiService.getWarranties()
+                Log.d(TAG, "Raw response size: ${response.size}")
+
+                response.forEachIndexed { index, warranty ->
+                    Log.d(TAG, "Warranty $index: id=${warranty.idWarranty}, name=${warranty.name}, " +
+                            "price=${warranty.price}, expired=${warranty.isExpired}, " +
+                            "days=${warranty.daysRemaining}, icon=${warranty.icon}")
+                }
+
                 _warranties.value = response
-                Log.d("WarrantiesViewModel", "Warranties loaded successfully: ${response.size} items")
+                Log.d(TAG, "Warranties loaded successfully: ${response.size} items")
+
+            } catch (e: HttpException) {
+                Log.e(TAG, "HTTP Error loading warranties", e)
+                Log.e(TAG, "Error code: ${e.code()}")
+
+                try {
+                    val errorBody = e.response()?.errorBody()?.string()
+                    Log.e(TAG, "Error body: $errorBody")
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Could not read error body", ex)
+                }
+
+                val errorMessage = when (e.code()) {
+                    401 -> "No autorizado. Por favor, inicia sesión nuevamente."
+                    403 -> "Acceso denegado"
+                    404 -> "Servicio de garantías no encontrado"
+                    500 -> "Error interno del servidor"
+                    else -> "Error HTTP ${e.code()}: ${e.message()}"
+                }
+                _error.value = errorMessage
+                _warranties.value = emptyList()
+
+            } catch (e: com.google.gson.JsonSyntaxException) {
+                Log.e(TAG, "JSON parsing error", e)
+                _error.value = "Error al procesar la respuesta del servidor"
+                _warranties.value = emptyList()
+
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "Network timeout", e)
+                _error.value = "Tiempo de espera agotado. Verifica tu conexión."
+                _warranties.value = emptyList()
+
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "Connection error", e)
+                _error.value = "No se puede conectar al servidor. ¿Está ejecutándose?"
+                _warranties.value = emptyList()
+
+            } catch (e: java.net.UnknownHostException) {
+                Log.e(TAG, "Unknown host error", e)
+                _error.value = "Error de conexión. Verifica tu internet."
+                _warranties.value = emptyList()
 
             } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error loading warranties from API", e)
-
-                Log.d("WarrantiesViewModel", "Using sample data as fallback")
-                _warranties.value = getSampleWarranties()
-                _error.value = "No se pudo conectar con el servidor. Mostrando datos de prueba."
+                Log.e(TAG, "Unexpected error loading warranties", e)
+                _error.value = "Error inesperado: ${e.message ?: "Error desconocido"}"
+                _warranties.value = emptyList()
 
             } finally {
                 _isLoading.value = false
@@ -72,18 +134,31 @@ class WarrantiesViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+
             try {
-                Log.d("WarrantiesViewModel", "Loading warranty by ID: $id")
+                Log.d(TAG, "Loading warranty by ID: $id")
 
                 val warranty = apiService.getWarrantyById(id)
                 _selectedWarranty.value = warranty
-                Log.d("WarrantiesViewModel", "Warranty loaded successfully: ${warranty.name}")
+                Log.d(TAG, "Warranty loaded successfully: ${warranty.name}")
 
-            } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error loading warranty by id: $id", e)
+            } catch (e: HttpException) {
+                Log.e(TAG, "HTTP Error loading warranty by id: $id", e)
 
                 _selectedWarranty.value = _warranties.value.find { it.idWarranty == id }
-                _error.value = "Error al cargar garantía desde el servidor"
+
+                val errorMessage = when (e.code()) {
+                    404 -> "Garantía no encontrada."
+                    401 -> "No autorizado."
+                    else -> "Error al cargar garantía: HTTP ${e.code()}"
+                }
+                _error.value = errorMessage
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception loading warranty by id: $id", e)
+
+                _selectedWarranty.value = _warranties.value.find { it.idWarranty == id }
+                _error.value = "Error al cargar garantía: ${e.message}"
 
             } finally {
                 _isLoading.value = false
@@ -96,11 +171,13 @@ class WarrantiesViewModel @Inject constructor(
         price: Double,
         purchaseDate: Date,
         expirationDate: Date,
-        icon: String?
+        icon: String?,
+        onSuccess: (() -> Unit)? = null
     ) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+
             try {
                 val request = CreateWarrantyRequest(
                     name = name,
@@ -110,18 +187,35 @@ class WarrantiesViewModel @Inject constructor(
                     icon = icon
                 )
 
-                Log.d("WarrantiesViewModel", "Creating warranty: $name")
+                Log.d(TAG, "Creating warranty: $name")
+                Log.d(TAG, "Request: $request")
 
                 val newWarranty = apiService.createWarranty(request)
-                _warranties.value = _warranties.value + newWarranty
-                Log.d("WarrantiesViewModel", "Warranty created successfully: ${newWarranty.name}")
+
+                loadWarranties()
+                Log.d(TAG, "Warranty created successfully: ${newWarranty.name}")
+
+                onSuccess?.invoke()
+
+            } catch (e: HttpException) {
+                Log.e(TAG, "HTTP Error creating warranty", e)
+                try {
+                    val errorBody = e.response()?.errorBody()?.string()
+                    Log.e(TAG, "Error body: $errorBody")
+                } catch (ex: Exception) {
+                    Log.e(TAG, "Could not read error body", ex)
+                }
+
+                val errorMessage = when (e.code()) {
+                    400 -> "Datos inválidos. Verifica la información."
+                    401 -> "No autorizado. Inicia sesión nuevamente."
+                    else -> "Error al crear garantía: HTTP ${e.code()}"
+                }
+                _error.value = errorMessage
 
             } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error creating warranty", e)
-
-                val newWarranty = createLocalWarranty(name, price, purchaseDate, expirationDate, icon)
-                _warranties.value = _warranties.value + newWarranty
-                _error.value = "Garantía creada localmente. Error de sincronización con servidor."
+                Log.e(TAG, "Exception creating warranty", e)
+                _error.value = "Error al crear garantía: ${e.message}"
 
             } finally {
                 _isLoading.value = false
@@ -135,11 +229,13 @@ class WarrantiesViewModel @Inject constructor(
         price: Double,
         purchaseDate: Date,
         expirationDate: Date,
-        icon: String?
+        icon: String?,
+        onSuccess: (() -> Unit)? = null
     ) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+
             try {
                 val request = UpdateWarrantyRequest(
                     name = name,
@@ -149,20 +245,29 @@ class WarrantiesViewModel @Inject constructor(
                     icon = icon
                 )
 
-                Log.d("WarrantiesViewModel", "Updating warranty: $id")
+                Log.d(TAG, "Updating warranty: $id")
                 val updatedWarranty = apiService.updateWarranty(id, request)
 
-                _warranties.value = _warranties.value.map {
-                    if (it.idWarranty == id) updatedWarranty else it
-                }
+                loadWarranties()
                 _selectedWarranty.value = updatedWarranty
-                Log.d("WarrantiesViewModel", "Warranty updated successfully: ${updatedWarranty.name}")
+                Log.d(TAG, "Warranty updated successfully: ${updatedWarranty.name}")
+
+                onSuccess?.invoke()
+
+            } catch (e: HttpException) {
+                Log.e(TAG, "HTTP Error updating warranty", e)
+
+                val errorMessage = when (e.code()) {
+                    404 -> "Garantía no encontrada."
+                    400 -> "Datos inválidos."
+                    401 -> "No autorizado."
+                    else -> "Error al actualizar garantía: HTTP ${e.code()}"
+                }
+                _error.value = errorMessage
 
             } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error updating warranty", e)
-
-                updateLocalWarranty(id, name, price, purchaseDate, expirationDate, icon)
-                _error.value = "Garantía actualizada localmente. Error de sincronización con servidor."
+                Log.e(TAG, "Exception updating warranty", e)
+                _error.value = "Error al actualizar garantía: ${e.message}"
 
             } finally {
                 _isLoading.value = false
@@ -174,108 +279,38 @@ class WarrantiesViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
-            try {
-                Log.d("WarrantiesViewModel", "Deleting warranty: $id")
-                apiService.deleteWarranty(id)
 
-                _warranties.value = _warranties.value.filter { it.idWarranty != id }
-                _selectedWarranty.value = null
-                Log.d("WarrantiesViewModel", "Warranty deleted successfully: $id")
+            try {
+                Log.d(TAG, "Deleting warranty: $id")
+
+                val response = apiService.deleteWarranty(id)
+
+                if (response.isSuccessful) {
+                    loadWarranties()
+                    _selectedWarranty.value = null
+                    Log.d(TAG, "Warranty deleted successfully: $id")
+                } else {
+                    throw HttpException(response)
+                }
+
+            } catch (e: HttpException) {
+                Log.e(TAG, "HTTP Error deleting warranty", e)
+
+                val errorMessage = when (e.code()) {
+                    404 -> "Garantía no encontrada."
+                    401 -> "No autorizado."
+                    else -> "Error al eliminar garantía: HTTP ${e.code()}"
+                }
+                _error.value = errorMessage
 
             } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error deleting warranty", e)
-
-                _warranties.value = _warranties.value.filter { it.idWarranty != id }
-                _selectedWarranty.value = null
-                _error.value = "Garantía eliminada localmente. Error de sincronización con servidor."
+                Log.e(TAG, "Exception deleting warranty", e)
+                _error.value = "Error al eliminar garantía: ${e.message}"
 
             } finally {
                 _isLoading.value = false
             }
         }
-    }
-
-    private fun createLocalWarranty(
-        name: String,
-        price: Double,
-        purchaseDate: Date,
-        expirationDate: Date,
-        icon: String?
-    ): Warranty {
-        val now = Date()
-        val daysRemaining = ((expirationDate.time - now.time) / (1000 * 60 * 60 * 24)).toInt()
-
-        return Warranty(
-            idWarranty = (_warranties.value.maxByOrNull { it.idWarranty }?.idWarranty ?: 0) + 1,
-            name = name,
-            price = price,
-            purchaseDate = purchaseDate,
-            expirationDate = expirationDate,
-            icon = icon,
-            userId = 1,
-            isExpired = expirationDate.before(now),
-            daysRemaining = daysRemaining,
-            createdAt = now
-        )
-    }
-
-    private fun updateLocalWarranty(
-        id: Int,
-        name: String,
-        price: Double,
-        purchaseDate: Date,
-        expirationDate: Date,
-        icon: String?
-    ) {
-        val currentWarranty = _warranties.value.find { it.idWarranty == id }
-        if (currentWarranty != null) {
-            val now = Date()
-            val daysRemaining = ((expirationDate.time - now.time) / (1000 * 60 * 60 * 24)).toInt()
-
-            val updatedWarranty = currentWarranty.copy(
-                name = name,
-                price = price,
-                purchaseDate = purchaseDate,
-                expirationDate = expirationDate,
-                icon = icon,
-                isExpired = expirationDate.before(now),
-                daysRemaining = daysRemaining
-            )
-
-            _warranties.value = _warranties.value.map {
-                if (it.idWarranty == id) updatedWarranty else it
-            }
-            _selectedWarranty.value = updatedWarranty
-        }
-    }
-
-    private fun getSampleWarranties(): List<Warranty> {
-        return listOf(
-            Warranty(
-                idWarranty = 1,
-                name = "MSI Cyborg 15 A12U",
-                price = 777000.0,
-                purchaseDate = Calendar.getInstance().apply { add(Calendar.YEAR, -1) }.time,
-                expirationDate = Calendar.getInstance().apply { add(Calendar.YEAR, 1) }.time,
-                icon = "computer",
-                userId = 1,
-                isExpired = false,
-                daysRemaining = 365,
-                createdAt = Date()
-            ),
-            Warranty(
-                idWarranty = 2,
-                name = "Teclado Redragon K552",
-                price = 45000.0,
-                purchaseDate = Calendar.getInstance().apply { add(Calendar.MONTH, -6) }.time,
-                expirationDate = Calendar.getInstance().apply { add(Calendar.MONTH, 6) }.time,
-                icon = "keyboard",
-                userId = 1,
-                isExpired = false,
-                daysRemaining = 180,
-                createdAt = Date()
-            )
-        )
     }
 
     fun clearError() {
@@ -286,32 +321,7 @@ class WarrantiesViewModel @Inject constructor(
         _selectedWarranty.value = null
     }
 
-    fun loadStatistics() {
-        viewModelScope.launch {
-            try {
-                val stats = apiService.getWarrantyStatistics()
-                _statistics.value = stats
-            } catch (e: Exception) {
-                Log.e("WarrantiesViewModel", "Error loading statistics", e)
-                calculateLocalStatistics()
-            }
-        }
-    }
-
-    private fun calculateLocalStatistics() {
-        val warranties = _warranties.value
-        val active = warranties.count { !it.isExpired }
-        val expired = warranties.count { it.isExpired }
-        val expiringSoon = warranties.count { !it.isExpired && it.daysRemaining <= 30 }
-
-        _statistics.value = WarrantyStatistics(
-            total = warranties.size,
-            active = active,
-            expired = expired,
-            expiringSoon = expiringSoon,
-            totalValue = warranties.sumOf { it.price },
-            activeValue = warranties.filter { !it.isExpired }.sumOf { it.price },
-            expiredValue = warranties.filter { it.isExpired }.sumOf { it.price }
-        )
+    fun refreshWarranties() {
+        loadWarranties()
     }
 }

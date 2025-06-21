@@ -43,68 +43,45 @@ data class Warranty(
     val createdAt: Date? = null
 ) {
     val iconVector: ImageVector
-        get() = when {
-            icon?.contains("computer", ignoreCase = true) == true ||
-                    name.contains("MSI", ignoreCase = true) ||
-                    name.contains("laptop", ignoreCase = true) -> Icons.Default.Computer
-
-            icon?.contains("keyboard", ignoreCase = true) == true ||
-                    name.contains("keyboard", ignoreCase = true) ||
-                    name.contains("redragon", ignoreCase = true) -> Icons.Default.Keyboard
-
-            icon?.contains("tv", ignoreCase = true) == true ||
-                    name.contains("TV", ignoreCase = true) ||
-                    name.contains("TCL", ignoreCase = true) -> Icons.Default.Tv
-
-            icon?.contains("fan", ignoreCase = true) == true ||
-                    name.contains("abanico", ignoreCase = true) -> Icons.Default.Air
-
-            icon?.contains("phone", ignoreCase = true) == true ||
-                    name.contains("smartphone", ignoreCase = true) ||
-                    name.contains("xiaomi", ignoreCase = true) -> Icons.Default.PhoneAndroid
-
-            icon?.contains("monitor", ignoreCase = true) == true ||
-                    name.contains("monitor", ignoreCase = true) ||
-                    name.contains("viewsonic", ignoreCase = true) -> Icons.Default.Monitor
-
-            icon?.contains("speaker", ignoreCase = true) == true ||
-                    name.contains("alexa", ignoreCase = true) -> Icons.Default.Speaker
-
-            icon?.contains("camera", ignoreCase = true) == true -> Icons.Default.CameraAlt
-
-            icon?.contains("headphones", ignoreCase = true) == true -> Icons.Default.Headphones
-
-            icon?.contains("tablet", ignoreCase = true) == true -> Icons.Default.Tablet
-
+        get() = when (icon?.lowercase()) {
+            "computer" -> Icons.Default.Computer
+            "keyboard" -> Icons.Default.Keyboard
+            "tv" -> Icons.Default.Tv
+            "fan" -> Icons.Default.Air
+            "phone" -> Icons.Default.PhoneAndroid
+            "monitor" -> Icons.Default.Monitor
+            "speaker" -> Icons.Default.Speaker
+            "camera" -> Icons.Default.CameraAlt
+            "headphones" -> Icons.Default.Headphones
+            "tablet" -> Icons.Default.Tablet
             else -> Icons.Default.Devices
         }
 }
 
 class DateAdapter : com.google.gson.JsonDeserializer<Date>, com.google.gson.JsonSerializer<Date> {
-    private val dateFormatWithTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    private val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    private val isoFormatSimple = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     private val dateFormatSimple = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    private val dateFormatWithMillis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
 
     override fun deserialize(json: com.google.gson.JsonElement?, typeOfT: java.lang.reflect.Type?, context: com.google.gson.JsonDeserializationContext?): Date {
         return try {
             val dateString = json?.asString ?: return Date()
 
             when {
-                dateString.contains("T") && dateString.contains(".") -> {
-                    try {
-                        dateFormatWithMillis.parse(dateString) ?: Date()
-                    } catch (e: Exception) {
-                        dateFormatWithTime.parse(dateString) ?: Date()
-                    }
+                dateString.contains("T") && dateString.contains("Z") -> {
+                    isoFormat.parse(dateString) ?: Date()
                 }
                 dateString.contains("T") -> {
-                    dateFormatWithTime.parse(dateString) ?: Date()
+                    isoFormatSimple.parse(dateString) ?: Date()
                 }
                 else -> {
                     dateFormatSimple.parse(dateString) ?: Date()
                 }
             }
         } catch (e: Exception) {
+            android.util.Log.e("DateAdapter", "Error parsing date: ${json?.asString}", e)
             Date()
         }
     }

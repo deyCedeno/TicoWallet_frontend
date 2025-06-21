@@ -25,6 +25,16 @@ import com.moviles.ticowallet.models.Warranty
 import java.text.SimpleDateFormat
 import java.util.*
 
+data class ValidationResult(
+    val isValid: Boolean,
+    val errors: List<String>
+)
+
+data class FieldValidation(
+    val isValid: Boolean,
+    val errorMessage: String?
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditWarrantyScreen(
@@ -36,11 +46,40 @@ fun AddEditWarrantyScreen(
     val isEditMode = warranty != null
     val context = LocalContext.current
 
+    var isInitialized by remember { mutableStateOf(false) }
+
     var name by remember { mutableStateOf(warranty?.name ?: "") }
     var price by remember { mutableStateOf(warranty?.price?.toString() ?: "") }
     var purchaseDate by remember { mutableStateOf(warranty?.purchaseDate ?: Date()) }
     var expirationDate by remember { mutableStateOf(warranty?.expirationDate ?: Date()) }
     var selectedIcon by remember { mutableStateOf(warranty?.icon ?: "computer") }
+
+    var nameValidation by remember { mutableStateOf(FieldValidation(true, null)) }
+    var priceValidation by remember { mutableStateOf(FieldValidation(true, null)) }
+    var dateValidation by remember { mutableStateOf(FieldValidation(true, null)) }
+
+    LaunchedEffect(warranty) {
+        if (warranty != null && !isInitialized) {
+            name = warranty.name
+            price = warranty.price.toString()
+            purchaseDate = warranty.purchaseDate
+            expirationDate = warranty.expirationDate
+            selectedIcon = warranty.icon ?: "computer"
+            isInitialized = true
+        }
+    }
+
+    LaunchedEffect(name) {
+        nameValidation = validateName(name)
+    }
+
+    LaunchedEffect(price) {
+        priceValidation = validatePrice(price)
+    }
+
+    LaunchedEffect(purchaseDate, expirationDate) {
+        dateValidation = validateDates(purchaseDate, expirationDate)
+    }
 
     var showPurchaseDatePicker by remember { mutableStateOf(false) }
     var showExpirationDatePicker by remember { mutableStateOf(false) }
@@ -48,11 +87,23 @@ fun AddEditWarrantyScreen(
 
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
-    val isFormValid = name.isNotBlank() &&
-            price.isNotBlank() &&
-            price.toDoubleOrNull() != null &&
-            price.toDoubleOrNull()!! > 0 &&
-            expirationDate.after(purchaseDate)
+    val isFormValid = nameValidation.isValid &&
+            priceValidation.isValid &&
+            dateValidation.isValid &&
+            name.isNotBlank() &&
+            price.isNotBlank()
+
+    if (isEditMode && warranty == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF27496D)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Color.White)
+        }
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -175,18 +226,22 @@ fun AddEditWarrantyScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    focusedBorderColor = if (nameValidation.isValid) Color.White else Color.Red,
+                    unfocusedBorderColor = if (nameValidation.isValid) Color.White.copy(alpha = 0.5f) else Color.Red.copy(alpha = 0.5f),
                     focusedLabelColor = Color.White,
                     unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
                 ),
-                singleLine = true
+                singleLine = true,
+                isError = !nameValidation.isValid,
+                supportingText = if (!nameValidation.isValid) {
+                    { Text(nameValidation.errorMessage ?: "", color = Color.Red) }
+                } else null
             )
 
             OutlinedTextField(
                 value = price,
                 onValueChange = {
-                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                    if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
                         price = it
                     }
                 },
@@ -196,13 +251,17 @@ fun AddEditWarrantyScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                    focusedBorderColor = if (priceValidation.isValid) Color.White else Color.Red,
+                    unfocusedBorderColor = if (priceValidation.isValid) Color.White.copy(alpha = 0.5f) else Color.Red.copy(alpha = 0.5f),
                     focusedLabelColor = Color.White,
                     unfocusedLabelColor = Color.White.copy(alpha = 0.7f)
                 ),
                 singleLine = true,
-                prefix = { Text("₡ ", color = Color.White.copy(alpha = 0.7f)) }
+                prefix = { Text("₡ ", color = Color.White.copy(alpha = 0.7f)) },
+                isError = !priceValidation.isValid,
+                supportingText = if (!priceValidation.isValid) {
+                    { Text(priceValidation.errorMessage ?: "", color = Color.Red) }
+                } else null
             )
 
             OutlinedTextField(
@@ -237,7 +296,7 @@ fun AddEditWarrantyScreen(
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = Color.White,
-                    disabledBorderColor = Color.White.copy(alpha = 0.5f),
+                    disabledBorderColor = if (dateValidation.isValid) Color.White.copy(alpha = 0.5f) else Color.Red.copy(alpha = 0.5f),
                     disabledLabelColor = Color.White.copy(alpha = 0.7f)
                 ),
                 trailingIcon = {
@@ -247,9 +306,9 @@ fun AddEditWarrantyScreen(
                         tint = Color.White.copy(alpha = 0.7f)
                     )
                 },
-                isError = !expirationDate.after(purchaseDate),
-                supportingText = if (!expirationDate.after(purchaseDate)) {
-                    { Text("La fecha de vencimiento debe ser posterior a la de compra", color = Color.Red) }
+                isError = !dateValidation.isValid,
+                supportingText = if (!dateValidation.isValid) {
+                    { Text(dateValidation.errorMessage ?: "", color = Color.Red) }
                 } else null
             )
 
@@ -268,7 +327,7 @@ fun AddEditWarrantyScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Info,
+                            imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             tint = Color(0xFF4CAF50),
                             modifier = Modifier.size(20.dp)
@@ -323,6 +382,50 @@ fun AddEditWarrantyScreen(
     }
 }
 
+fun validateName(name: String): FieldValidation {
+    return when {
+        name.isBlank() -> FieldValidation(false, "El nombre es requerido")
+        name.length < 2 -> FieldValidation(false, "El nombre debe tener al menos 2 caracteres")
+        name.length > 100 -> FieldValidation(false, "El nombre no puede exceder 100 caracteres")
+        !name.matches(Regex("^[a-zA-Z0-9\\s\\-_áéíóúÁÉÍÓÚñÑ]+$")) ->
+            FieldValidation(false, "El nombre contiene caracteres no válidos")
+        else -> FieldValidation(true, null)
+    }
+}
+
+fun validatePrice(price: String): FieldValidation {
+    if (price.isBlank()) return FieldValidation(false, "El precio es requerido")
+
+    val priceValue = price.toDoubleOrNull()
+    return when {
+        priceValue == null -> FieldValidation(false, "El precio debe ser un número válido")
+        priceValue <= 0 -> FieldValidation(false, "El precio debe ser mayor a 0")
+        priceValue > 999999999 -> FieldValidation(false, "El precio es demasiado alto")
+        else -> FieldValidation(true, null)
+    }
+}
+
+fun validateDates(purchaseDate: Date, expirationDate: Date): FieldValidation {
+    val today = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 23)
+        set(Calendar.MINUTE, 59)
+        set(Calendar.SECOND, 59)
+        set(Calendar.MILLISECOND, 999)
+    }.time
+
+    return when {
+        purchaseDate.after(today) ->
+            FieldValidation(false, "La fecha de compra no puede ser futura")
+        expirationDate.before(purchaseDate) || expirationDate == purchaseDate ->
+            FieldValidation(false, "La fecha de vencimiento debe ser posterior a la de compra")
+        (expirationDate.time - purchaseDate.time) > (15 * 365 * 24 * 60 * 60 * 1000L) ->
+            FieldValidation(false, "La garantía no puede exceder 15 años")
+        (expirationDate.time - purchaseDate.time) < (24 * 60 * 60 * 1000L) ->
+            FieldValidation(false, "La garantía debe ser de al menos 1 día")
+        else -> FieldValidation(true, null)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomDatePickerDialog(
@@ -333,8 +436,6 @@ fun CustomDatePickerDialog(
     onDateSelected: (Date) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val calendar = Calendar.getInstance().apply { time = initialDate }
-
     val initialDateMillis = initialDate.time
     val minDateMillis = minDate?.time
     val maxDateMillis = maxDate?.time
