@@ -32,6 +32,7 @@ import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
 import com.moviles.ticowallet.ui.account.AccountsScreen
 import com.moviles.ticowallet.ui.account.CreateAccountScreen
+import com.moviles.ticowallet.ui.account.UpdateAccountScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
 import kotlinx.coroutines.launch
@@ -434,6 +435,19 @@ fun AppNavHost(
         composable("crear_cuenta") {
             val accountViewModel: AccountViewModel = viewModel()
             CreateAccountScreen(navController = navController, accountViewModel)
+        }
+
+        composable(
+            route = "modificar_cuenta/{accountId}",
+            arguments = listOf(navArgument("accountId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getInt("accountId") ?: 0
+            val accountViewModel: AccountViewModel = viewModel()
+            UpdateAccountScreen(
+                navController = navController,
+                accountId = accountId,
+                viewModel = accountViewModel
+            )
         }
     }
 }

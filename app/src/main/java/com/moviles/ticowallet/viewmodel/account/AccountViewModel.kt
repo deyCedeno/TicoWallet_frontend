@@ -2,6 +2,7 @@ package com.moviles.ticowallet.viewmodel.account
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.moviles.ticowallet.models.Account
@@ -11,6 +12,8 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 class AccountViewModel(application: Application) : AndroidViewModel(application){
+    val selectedAccount = mutableStateOf<Account?>(null)
+
     fun getAllAccounts(onSuccess: (List<Account>) -> Unit, onError: (String) -> Unit){
         viewModelScope.launch {
             try {
@@ -58,4 +61,34 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+    fun findOneAccount(id: Int) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.findOneAccount(id)
+                selectedAccount.value = response.firstOrNull()
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
+    fun updateAccount(id: Int, account: Account) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.updateAccount(id, account)
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
 }

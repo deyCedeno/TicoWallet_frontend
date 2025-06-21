@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -112,6 +111,9 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
                             accountState.value?.forEach { account ->
                                 AccountItem(
                                     account = account,
+                                    onEditClick = {
+                                        navController.navigate("modificar_cuenta/${account.id}")
+                                    },
                                     onDeleteClick = { accountToDelete ->
                                         accountToDelete.id?.let {
                                             viewModel.deleteAccount(
@@ -161,7 +163,7 @@ fun AccountsScreen(navController: NavController, viewModel: AccountViewModel) {
 }
 
 @Composable
-fun AccountItem(account: Account, onDeleteClick: (Account) -> Unit) {
+fun AccountItem(account: Account, onDeleteClick: (Account) -> Unit, onEditClick: (Account) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -189,7 +191,7 @@ fun AccountItem(account: Account, onDeleteClick: (Account) -> Unit) {
                     tint = Color.White,
                     modifier = Modifier
                         .size(20.dp)
-                        .padding(end = 4.dp)
+                        .padding(end = 4.dp).clickable { onEditClick(account) }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
