@@ -79,6 +79,8 @@ interface ApiService {
     @POST("/api/account/register")
     suspend fun addAccount(@Body account: Account) : Account
 
+    @GET("api/account/{id}")
+    suspend fun findOneAccount(@Path("id") Id: Int) : List<Account>
 
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
