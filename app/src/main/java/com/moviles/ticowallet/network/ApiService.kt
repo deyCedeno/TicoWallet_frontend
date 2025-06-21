@@ -8,6 +8,7 @@ import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.models.Category
 import com.moviles.ticowallet.models.CreateMovementDto
 import com.moviles.ticowallet.models.CreateScheduledPaymentDto
+import com.moviles.ticowallet.models.DashboardResponse
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
 import com.moviles.ticowallet.models.Movement
@@ -124,6 +125,10 @@ interface ApiService {
     @POST("api/accountmovement/register")
     suspend fun createMovement(@Body movementGet: CreateMovementDto): MovementGet
 
+    // Dashboard
+
+    @GET("api/statistics/dashboard")
+    suspend fun getDashboardStats(): DashboardResponse
 }
 
 // Generic API response for success/error messages

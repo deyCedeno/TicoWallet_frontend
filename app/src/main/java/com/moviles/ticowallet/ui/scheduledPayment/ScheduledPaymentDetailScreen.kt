@@ -308,12 +308,7 @@ fun ScheduledPaymentDetailScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Eliminar",
-                            color = colorWhite,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+
                     }
 
                     // Update button with validation
