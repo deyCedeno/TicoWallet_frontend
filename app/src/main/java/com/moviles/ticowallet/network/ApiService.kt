@@ -6,10 +6,13 @@ import com.moviles.ticowallet.DAO.UpdateUserProfileDto
 import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
 import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.models.Category
+import com.moviles.ticowallet.models.CreateMovementDto
 import com.moviles.ticowallet.models.CreateScheduledPaymentDto
 import com.moviles.ticowallet.models.DashboardResponse
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
+import com.moviles.ticowallet.models.Movement
+import com.moviles.ticowallet.models.MovementGet
 import com.moviles.ticowallet.models.ScheduledPayment
 import com.moviles.ticowallet.models.User
 import okhttp3.MultipartBody
@@ -111,6 +114,16 @@ interface ApiService {
 
     @DELETE("api/scheduled-payment/{id}")
     suspend fun deleteScheduledPayment(@Path("id") id: Int): Response<ApiResponse>
+
+//    Movements
+    @GET("api/accountmovement")
+    suspend fun getAllMovements(): List<MovementGet>
+
+    @DELETE("api/accountmovement/{id}")
+    suspend fun deleteMovement(@Path("id") id: Int): Response<ApiResponse>
+
+    @POST("api/accountmovement/register")
+    suspend fun createMovement(@Body movementGet: CreateMovementDto): MovementGet
 
     // Dashboard
 

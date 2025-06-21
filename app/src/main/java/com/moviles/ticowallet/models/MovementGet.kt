@@ -1,19 +1,18 @@
 package com.moviles.ticowallet.models
 
-data class Movement(
+data class MovementGet (
     val id: Int,
     val amount: Double,
     val description: String,
     val date: String,
-    val time: String,
     val accountName: String,
-    val category: Category,
-    val currency: String,
-    val type: String,
-    val methodPayment: String,
-    val warranty: Int,
-    val state: String,
+    val accountId: Int,
     val location: String,
-    val account: Account,
-    val destinationAccount: Account
+    val currency: String,
+    val state: String,
+    val type: String,
+    val warranty: Int,
+    val accountIdRe: Int,
+    val categoryId: Int,
+    val time: String
 )

@@ -46,6 +46,8 @@ import com.moviles.ticowallet.viewmodel.account.AccountViewModel
 import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
+import com.moviles.ticowallet.ui.movements.CreateMovementScreen
+import com.moviles.ticowallet.ui.movements.MovementsScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 import com.moviles.ticowallet.ui.warranties.AddEditWarrantyScreen
 import com.moviles.ticowallet.ui.warranties.WarrantiesScreen
@@ -54,6 +56,7 @@ import com.moviles.ticowallet.viewmodel.warranties.WarrantiesViewModel
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentListScreen
 import com.moviles.ticowallet.ui.scheduledPayment.CreateScheduledPaymentScreen
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
+import com.moviles.ticowallet.viewmodel.movements.MovementViewModel
 import com.moviles.ticowallet.viewmodel.Statistics.StatisticsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -221,8 +224,10 @@ fun AppNavHost(
             val viewModel: HomeViewModel = viewModel()
             HomeScreen(navController = navController, viewModel)
         }
-        composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
-
+        composable("registros") {
+            val movementViewModel: MovementViewModel = viewModel()
+            MovementsScreen(navController = navController, viewModel = movementViewModel)
+        }
         composable("estadisticas") {
             val statisticsViewModel: StatisticsViewModel = viewModel()
             StatisticsScreen(navController = navController, viewModel = statisticsViewModel)
@@ -455,6 +460,25 @@ fun AppNavHost(
                 accountId = accountId,
                 viewModel = accountViewModel
             )
+        }
+
+//        Movimientos
+        composable("crear_movimiento") {
+            val movementViewModel: MovementViewModel = viewModel()
+            CreateMovementScreen(navController = navController, movementViewModel)
+        }
+
+        composable(
+            route = "modificar_movimiento/{movementId}",
+            arguments = listOf(navArgument("movementId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val movementId = backStackEntry.arguments?.getInt("movementId") ?: 0
+            val movementViewModel: MovementViewModel = viewModel()
+//            UpdateMovementScreen(
+//                navController = navController,
+//                movementId = movementId,
+//                viewModel = movementViewModel
+//            )
         }
     }
 }
