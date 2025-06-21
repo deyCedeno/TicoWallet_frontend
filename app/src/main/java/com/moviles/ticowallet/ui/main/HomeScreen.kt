@@ -71,7 +71,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
-                    onClick = { /* TODO: Handle click */ },
+                    onClick = { navController.navigate("crear_cuenta") },
                     colors = ButtonDefaults.buttonColors(),
                     modifier = Modifier.weight(1f)
                 ) {
