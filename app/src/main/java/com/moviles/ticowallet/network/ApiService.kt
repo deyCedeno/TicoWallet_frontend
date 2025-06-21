@@ -7,6 +7,7 @@ import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
 import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.models.Category
 import com.moviles.ticowallet.models.CreateScheduledPaymentDto
+import com.moviles.ticowallet.models.DashboardResponse
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
 import com.moviles.ticowallet.models.ScheduledPayment
@@ -102,6 +103,11 @@ interface ApiService {
 
     @DELETE("api/scheduled-payment/{id}")
     suspend fun deleteScheduledPayment(@Path("id") id: Int): Response<ApiResponse>
+
+    // Dashboard
+
+    @GET("api/statistics/dashboard")
+    suspend fun getDashboardStats(): DashboardResponse
 }
 
 // Generic API response for success/error messages

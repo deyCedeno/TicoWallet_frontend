@@ -28,6 +28,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.moviles.ticowallet.LoginActivity
+import com.moviles.ticowallet.ui.Statistics.StatisticsScreen
 import com.moviles.ticowallet.ui.account.AccountsScreen
 import com.moviles.ticowallet.ui.theme.TicoWalletTheme
 import com.moviles.ticowallet.viewmodel.main.MainViewModel
@@ -45,6 +46,7 @@ import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentListScreen
 import com.moviles.ticowallet.ui.scheduledPayment.CreateScheduledPaymentScreen
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
+import com.moviles.ticowallet.viewmodel.Statistics.StatisticsViewModel
 
 /**
  * Main scaffold with centralized navigation drawer, top bar and floating action button
@@ -209,7 +211,11 @@ fun AppNavHost(
             HomeScreen(navController = navController, viewModel)
         }
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
-        composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
+
+        composable("estadisticas") {
+            val statisticsViewModel: StatisticsViewModel = viewModel()
+            StatisticsScreen(navController = navController, viewModel = statisticsViewModel)
+        }
 
         // Scheduled Payments - Complete navigation flow
         composable("pagos_programados") {
@@ -237,7 +243,7 @@ fun AppNavHost(
         }
 
         // Other sections
-        composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
+        //composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
 
         // Goals - Existing navigation
         composable("objetivos") {
