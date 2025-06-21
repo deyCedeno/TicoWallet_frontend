@@ -45,6 +45,7 @@ import com.moviles.ticowallet.viewmodel.account.AccountViewModel
 import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
+import com.moviles.ticowallet.ui.movements.CreateMovementScreen
 import com.moviles.ticowallet.ui.movements.MovementsScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
 import com.moviles.ticowallet.ui.warranties.AddEditWarrantyScreen
@@ -458,7 +459,7 @@ fun AppNavHost(
 //        Movimientos
         composable("crear_movimiento") {
             val movementViewModel: MovementViewModel = viewModel()
-//            (navController = navController, movementViewModel)
+            CreateMovementScreen(navController = navController, movementViewModel)
         }
 
         composable(

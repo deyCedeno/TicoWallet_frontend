@@ -6,6 +6,7 @@ import com.moviles.ticowallet.DAO.UpdateUserProfileDto
 import com.moviles.ticowallet.DAO.UpdateUserProfileResponse
 import com.moviles.ticowallet.models.Account
 import com.moviles.ticowallet.models.Category
+import com.moviles.ticowallet.models.CreateMovementDto
 import com.moviles.ticowallet.models.CreateScheduledPaymentDto
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.models.HomePageResponse
@@ -119,6 +120,9 @@ interface ApiService {
 
     @DELETE("api/accountmovement/{id}")
     suspend fun deleteMovement(@Path("id") id: Int): Response<ApiResponse>
+
+    @POST("api/accountmovement/register")
+    suspend fun createMovement(@Body movementGet: CreateMovementDto): MovementGet
 
 }
 

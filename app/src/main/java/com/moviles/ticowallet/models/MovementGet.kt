@@ -10,5 +10,9 @@ data class MovementGet (
     val location: String,
     val currency: String,
     val state: String,
-    val type: String
+    val type: String,
+    val warranty: Int,
+    val accountIdRe: Int,
+    val categoryId: Int,
+    val time: String
 )
