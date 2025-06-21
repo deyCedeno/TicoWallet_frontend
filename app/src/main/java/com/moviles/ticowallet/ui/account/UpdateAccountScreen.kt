@@ -175,7 +175,7 @@ fun UpdateAccountScreen(accountId: Int, navController: NavController, viewModel:
                     onClick = {
                         try {
                             var account = Account(null, accountName.value, selectedAccountType.value, currentBalance.value.toDouble(), selectedCurrency.value)
-                            var uAccount = viewModel.addAccount(account)
+                            var uAccount = viewModel.updateAccount(accountId, account)
                             Toast.makeText(context, "Mae cuenta modificada con éxito.", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         } catch (e: NumberFormatException) {

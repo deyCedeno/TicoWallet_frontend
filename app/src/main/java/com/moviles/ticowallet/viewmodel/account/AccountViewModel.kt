@@ -76,4 +76,19 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
+
+    fun updateAccount(id: Int, account: Account) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.updateAccount(id, account)
+                Log.i("ViewModelInfo", "Response: ${response}")
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("ViewModelError", "HTTP Error: ${e.message()}, Response Body: $errorBody")
+            } catch (e: Exception) {
+                Log.e("ViewModelError", "Error: ${e.message}", e)
+            }
+        }
+    }
+
 }

@@ -82,6 +82,9 @@ interface ApiService {
     @GET("api/account/{id}")
     suspend fun findOneAccount(@Path("id") Id: Int) : List<Account>
 
+    @PUT("api/account/{id}")
+    suspend fun updateAccount(@Path("id") Id: Int, @Body account: Account) : Account
+
     @POST("api/goal")
     suspend fun createGoal(@Body goal: Goal): Goal
 
