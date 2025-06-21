@@ -148,7 +148,7 @@ fun MainAppScaffold(
                     "objetivos" -> {
                         FloatingActionButton(
                             onClick = {
-                                navController.navigate("crear_objetivo_screen")
+                                navController.navigate("create_goal")
                             },
                             containerColor = colorTeal,
                             contentColor = colorWhite,
@@ -432,7 +432,8 @@ fun AppNavHost(
         }
 
         composable("crear_cuenta") {
-            CreateAccountScreen(navController = navController)
+            val accountViewModel: AccountViewModel = viewModel()
+            CreateAccountScreen(navController = navController, accountViewModel)
         }
     }
 }
