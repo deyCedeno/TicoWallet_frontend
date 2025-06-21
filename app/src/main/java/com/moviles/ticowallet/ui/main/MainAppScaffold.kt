@@ -1,6 +1,7 @@
 package com.moviles.ticowallet.ui.main
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -43,14 +45,14 @@ import com.moviles.ticowallet.viewmodel.main.HomeViewModel
 import com.moviles.ticowallet.viewmodel.user.UserViewModel
 import com.moviles.ticowallet.ui.exchangerate.ExchangeRateScreen
 import com.moviles.ticowallet.viewmodel.goals.GoalsViewModel
+import com.moviles.ticowallet.ui.warranties.AddEditWarrantyScreen
+import com.moviles.ticowallet.ui.warranties.WarrantiesScreen
+import com.moviles.ticowallet.ui.warranties.WarrantyDetailScreen
+import com.moviles.ticowallet.viewmodel.warranties.WarrantiesViewModel
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentListScreen
 import com.moviles.ticowallet.ui.scheduledPayment.CreateScheduledPaymentScreen
 import com.moviles.ticowallet.ui.scheduledPayment.ScheduledPaymentDetailScreen
 
-/**
- * Main scaffold with centralized navigation drawer, top bar and floating action button
- * Manages the overall app structure and navigation
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainAppScaffold(
@@ -62,7 +64,6 @@ fun MainAppScaffold(
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
 
-    // Update selected menu item based on current route
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { backStackEntry ->
             val route = backStackEntry.destination.route
@@ -105,10 +106,13 @@ fun MainAppScaffold(
                         val title = when {
                             currentRoute == "create_scheduled_payment" -> "Nuevo pago programado"
                             currentRoute?.startsWith("scheduled_payment_detail") == true -> "Editar pago programado"
+                            currentRoute == "agregar_garantia" -> "Nueva Garantía"
+                            currentRoute?.startsWith("editar_garantia") == true -> "Editar Garantía"
+                            currentRoute?.startsWith("detalle_garantia") == true -> "Detalle Garantía"
                             else -> uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio"
                         }
                         Text(
-                            text = uiState.menuItems.find { it.route == uiState.selectedItemRoute }?.title ?: "Inicio",
+                            text = title,
                             color = colorWhite
                         )
                     },
@@ -139,7 +143,6 @@ fun MainAppScaffold(
                 )
             },
             floatingActionButton = {
-                // Only show FAB for specific main screens
                 val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
                 when (currentRoute) {
                     "objetivos" -> {
@@ -166,6 +169,18 @@ fun MainAppScaffold(
                             Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar pago programado")
                         }
                     }
+                    "garantias" -> {
+                        FloatingActionButton(
+                            onClick = {
+                                navController.navigate("agregar_garantia")
+                            },
+                            containerColor = colorTeal,
+                            contentColor = colorWhite,
+                            shape = CircleShape
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar garantía")
+                        }
+                    }
                 }
             },
             containerColor = colorDarkBlue1
@@ -179,23 +194,17 @@ fun MainAppScaffold(
                     navController = navController,
                     mainViewModel = mainViewModel,
                     paddingValues = innerPadding
-//                    startDestination = uiState.menuItems.firstOrNull()?.route ?: "inicio"
                 )
             }
         }
     }
 }
 
-/**
- * Navigation host containing all app routes
- * Each screen handles its own content without duplicate UI elements
- */
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     mainViewModel: MainViewModel,
     paddingValues: PaddingValues
-//    startDestination: String
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -212,7 +221,6 @@ fun AppNavHost(
         composable("registros") { PlaceholderScreen("Registros", PaddingValues()) }
         composable("estadisticas") { PlaceholderScreen("Estadísticas", PaddingValues()) }
 
-        // Scheduled Payments - Complete navigation flow
         composable("pagos_programados") {
             ScheduledPaymentListScreen(
                 navController = navController,
@@ -237,10 +245,8 @@ fun AppNavHost(
             )
         }
 
-        // Other sections
         composable("deudas") { PlaceholderScreen("Deudas", PaddingValues()) }
 
-        // Goals - Existing navigation
         composable("objetivos") {
             val goalsViewModel: GoalsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
             GoalsScreen(
@@ -278,11 +284,136 @@ fun AppNavHost(
             }
         }
 
-        // Other main screens
-        composable("garantias") { PlaceholderScreen("Garantías", paddingValues) }
+        composable("garantias") {
+            val warrantiesViewModel: WarrantiesViewModel = viewModel()
+            val warranties by warrantiesViewModel.warranties.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+            val error by warrantiesViewModel.error.collectAsStateWithLifecycle()
+
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            LaunchedEffect(currentBackStackEntry) {
+                val currentRoute = currentBackStackEntry?.destination?.route
+                if (currentRoute == "garantias") {
+                    Log.d("Navigation", "Refreshing warranties list")
+                    warrantiesViewModel.refreshWarranties()
+                }
+            }
+
+            error?.let { errorMessage ->
+                LaunchedEffect(errorMessage) {
+                    android.util.Log.e("WarrantiesScreen", "Error: $errorMessage")
+                    warrantiesViewModel.clearError()
+                }
+            }
+
+            WarrantiesScreen(
+                warranties = warranties,
+                isLoading = isLoading,
+                onWarrantyClick = { warranty ->
+                    navController.navigate("detalle_garantia/${warranty.idWarranty}")
+                },
+                onAddWarrantyClick = {
+                    navController.navigate("agregar_garantia")
+                }
+            )
+        }
+
+        composable(
+            route = "detalle_garantia/{warrantyId}",
+            arguments = listOf(navArgument("warrantyId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val warrantyId = backStackEntry.arguments?.getInt("warrantyId") ?: 0
+            val warrantiesViewModel: WarrantiesViewModel = viewModel()
+            val selectedWarranty by warrantiesViewModel.selectedWarranty.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+
+            LaunchedEffect(warrantyId) {
+                warrantiesViewModel.loadWarrantyById(warrantyId)
+            }
+
+            WarrantyDetailScreen(
+                warranty = selectedWarranty,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onEditClick = {
+                    navController.navigate("editar_garantia/$warrantyId")
+                },
+                onDeleteConfirm = {
+                    warrantiesViewModel.deleteWarranty(warrantyId)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("agregar_garantia") {
+            val warrantiesViewModel: WarrantiesViewModel = viewModel()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+            var hasNavigatedBack by remember { mutableStateOf(false) }
+
+            AddEditWarrantyScreen(
+                warranty = null,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { name, price, purchaseDate, expirationDate, icon ->
+                    warrantiesViewModel.createWarranty(
+                        name = name,
+                        price = price,
+                        purchaseDate = purchaseDate,
+                        expirationDate = expirationDate,
+                        icon = icon
+                    ) {
+                        navController.popBackStack()
+                    }
+                }
+
+            )
+        }
+
+        composable(
+            route = "editar_garantia/{warrantyId}",
+            arguments = listOf(navArgument("warrantyId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val warrantyId = backStackEntry.arguments?.getInt("warrantyId") ?: 0
+            val warrantiesViewModel: WarrantiesViewModel = viewModel()
+            val selectedWarranty by warrantiesViewModel.selectedWarranty.collectAsStateWithLifecycle()
+            val isLoading by warrantiesViewModel.isLoading.collectAsStateWithLifecycle()
+            var hasNavigatedBack by remember { mutableStateOf(false) }
+
+            LaunchedEffect(warrantyId) {
+                if (selectedWarranty?.idWarranty != warrantyId) {
+                    warrantiesViewModel.loadWarrantyById(warrantyId)
+                }
+            }
+
+            AddEditWarrantyScreen(
+                warranty = selectedWarranty,
+                isLoading = isLoading,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onSaveClick = { name, price, purchaseDate, expirationDate, icon ->
+                    warrantiesViewModel.updateWarranty(
+                        id = warrantyId,
+                        name = name,
+                        price = price,
+                        purchaseDate = purchaseDate,
+                        expirationDate = expirationDate,
+                        icon = icon
+                    ) {
+                        navController.popBackStack()
+                    }
+                }
+            )
+        }
+
         composable("tipo_cambio") {
             ExchangeRateScreen(paddingValues = PaddingValues())
         }
+
         composable("ajustes") {
             TicoWalletTheme {
                 val viewModel: UserViewModel = viewModel()
@@ -304,8 +435,6 @@ fun AppNavHost(
             val accountViewModel: AccountViewModel = viewModel()
             CreateAccountScreen(navController = navController, accountViewModel)
         }
-
-
     }
 }
 
