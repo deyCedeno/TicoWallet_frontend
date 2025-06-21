@@ -15,7 +15,6 @@ import androidx.lifecycle.viewModelScope
 import com.moviles.ticowallet.common.Constants
 import com.moviles.ticowallet.models.Goal
 import com.moviles.ticowallet.network.RetrofitInstance
-import com.moviles.ticowallet.viewmodel.user.createUserRequestBody
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

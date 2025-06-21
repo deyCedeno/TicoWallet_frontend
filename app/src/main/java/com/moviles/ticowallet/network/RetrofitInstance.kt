@@ -12,4 +12,12 @@ object RetrofitInstance {
             .build()
             .create(ApiService::class.java)
     }
+
+    val warrantyApi: WarrantyService by lazy {
+        Retrofit.Builder()
+            .baseUrl(API_BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(WarrantyService::class.java)
+    }
 }
